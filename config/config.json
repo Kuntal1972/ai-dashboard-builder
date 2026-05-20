@@ -1,0 +1,47 @@
+{
+  "app": {
+    "name": "AI Dashboard Builder",
+    "version": "1.0.0",
+    "description": "Browser-based AI agent for building interactive dashboards powered by Claude"
+  },
+  "claude": {
+    "model": "claude-opus-4-6",
+    "maxTokens": 4096,
+    "apiEndpoint": "https://api.anthropic.com/v1/messages",
+    "apiVersion": "2023-06-01",
+    "dangerousDirectBrowserAccess": true
+  },
+  "chart": {
+    "defaultColors": [
+      "#7c3aed", "#06b6d4", "#10b981", "#f59e0b",
+      "#ef4444", "#8b5cf6", "#3b82f6", "#ec4899",
+      "#14b8a6", "#f97316", "#a3e635", "#fb923c"
+    ],
+    "colorScales": {
+      "blues":   "Blues",
+      "reds":    "Reds",
+      "greens":  "Greens",
+      "viridis": "Viridis",
+      "sunset":  "RdYlBu",
+      "plotly":  "Portland"
+    },
+    "defaultMinHeight": 260,
+    "exportWidth": 1400,
+    "exportHeight": 700,
+    "exportFormat": "png"
+  },
+  "ui": {
+    "previewRows": 100,
+    "sampleRowsForAnalysis": 300,
+    "sampleUniqueValues": 8,
+    "maxFilterUniqueValues": 60,
+    "toastDurationMs": 4500,
+    "histogramBins": 25
+  },
+  "examplePrompts": [
+    "Sales by region with monthly trends",
+    "Customer segmentation analysis",
+    "Product performance KPI dashboard",
+    "Operational metrics overview"
+  ]
+}

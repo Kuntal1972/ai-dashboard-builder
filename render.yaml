@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: ai-dashboard-builder
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: GROQ_API_KEY
+        sync: false        # You will paste your key in the Render dashboard
+      - key: GROQ_MODEL
+        value: llama-3.1-8b-instant

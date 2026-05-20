@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Dashboard Builder</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <script src="js/plotly-2.27.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+
+<!-- ══ Header ══════════════════════════════════════════════ -->
+<header>
+  <div class="logo">📊 AI <span>Dashboard Builder</span></div>
+  <div class="sep"></div>
+  <div class="mode-seg" id="mode-seg">
+    <button class="mseg-btn active" data-mode="api"     id="mbtn-api">🤖 Claude API Mode</button>
+    <button class="mseg-btn"        data-mode="powerbi" id="mbtn-powerbi">⚡ Power BI + Ollama Mode</button>
+  </div>
+  <div class="sep"></div>
+  <button id="btn-upload" class="hbtn accent">⬆ Upload File</button>
+  <button id="btn-clear-dash" class="hbtn" title="Clear current dashboard">🗑 Clear Dashboard</button>
+  <button id="btn-download-pbix" class="hbtn" title="Download dashboard as Power BI Template" disabled>⬇ Download PBIX</button>
+  <button id="btn-debug" class="hbtn" title="Toggle column mapping inspector" onclick="toggleDebugMode()">🔍 Debug</button>
+  <button id="btn-prompt-guide" class="hbtn" title="How to write effective prompts">📖 Prompt Guide</button>
+  <button id="btn-generate-prompt" class="hbtn" title="Auto-generate a prompt from your dataset">✨ Generate Prompt</button>
+  <div class="spacer"></div>
+  <span id="dataset-pill" class="dataset-pill hidden"></span>
+  <span id="ai-conn-badge" class="ai-conn-badge"></span>
+  <button id="btn-settings" class="hbtn icon" title="Settings">⚙</button>
+</header>
+
+<!-- ══ Dashboard ════════════════════════════════════════════ -->
+<div id="dashboard" class="dashboard">
+
+  <!-- Prompt bar -->
+  <div class="prompt-bar">
+    <div class="prompt-input-wrap">
+      <textarea id="prompt-input"
+        placeholder="Describe your dashboard… e.g. &quot;Create a sales dashboard with bar charts for revenue by region, monthly trend line, pie chart for product mix, and KPI cards for total revenue, orders, and average order value&quot;"></textarea>
+      <div class="prompt-btn-col">
+        <button id="btn-build" class="build-btn">⚡ Build Dashboard</button>
+        <button id="btn-refine" class="refine-btn" disabled title="Build a dashboard first, then describe refinements">🔄 Refine</button>
+      </div>
+    </div>
+    <div class="prompt-hint">Ctrl+Enter to build · After building, describe changes and click Refine</div>
+  </div>
+
+  <!-- Body: left panel + charts -->
+  <div class="dash-body">
+
+    <!-- Left panel: Data + Filters tabs -->
+    <aside class="left-panel" id="left-panel">
+      <div class="panel-tabs">
+        <button class="panel-tab active" data-tab="data">📋 Data</button>
+        <button class="panel-tab" data-tab="filters">🔍 Filters</button>
+        <button class="panel-tab" data-tab="log">💬 Log</button>
+      </div>
+
+      <!-- DATA TAB -->
+      <div class="data-tab" id="data-tab">
+
+        <!-- Multi-dataset bar (shown when 2+ files loaded) -->
+        <div id="multi-ds-bar" class="multi-ds-bar hidden">
+          <button id="btn-join-tables" class="join-tables-btn">⟷ Map &amp; Join Tables</button>
+          <span id="multi-ds-count" class="multi-ds-count"></span>
+        </div>
+
+        <!-- Single dataset view -->
+        <div id="single-ds-view">
+          <div class="ds-info-bar" id="ds-info-bar">
+            <div class="ds-name" id="ds-name">No dataset loaded</div>
+            <div class="ds-meta" id="ds-meta">Upload a file to begin</div>
+          </div>
+          <div class="col-list-wrap" id="col-list-wrap">
+            <div class="col-list-hdr">Columns</div>
+            <div id="col-chips"></div>
+          </div>
+          <div class="data-preview-hdr">
+            <span>Data Preview</span>
+            <span class="row-info" id="preview-row-info"></span>
+          </div>
+          <div class="data-preview-wrap">
+            <table class="mini-table" id="data-preview-table"></table>
+          </div>
+        </div>
+
+        <!-- Multi dataset view (accordion per file) -->
+        <div id="multi-ds-view" class="hidden"></div>
+
+      </div>
+
+      <!-- FILTERS TAB -->
+      <div class="filter-tab hidden" id="filter-tab">
+        <div class="filter-tab-hdr">
+          <span>Active Filters</span>
+          <button id="btn-clear-all" class="clear-all hidden">✕ Clear all</button>
+        </div>
+        <div class="filter-tab-inner" id="slicer-list"></div>
+      </div>
+
+      <!-- LOG TAB -->
+      <div class="log-tab hidden" id="log-tab">
+        <div class="log-tab-hdr">Conversation Log</div>
+        <div class="log-tab-inner" id="history-log"></div>
+      </div>
+    </aside>
+
+    <!-- Charts area -->
+    <div class="charts-area">
+      <div class="filter-strip" id="filter-strip">
+        <span class="filter-strip-label">Active filters:</span>
+        <div id="active-chips"></div>
+        <span id="row-count" class="row-count"></span>
+      </div>
+      <div id="charts-grid" class="charts-grid">
+        <div class="ready-hint" id="ready-hint">
+          <div class="ready-icon">📊</div>
+          <div class="ready-title">AI Dashboard Builder</div>
+          <div class="ready-msg">Upload data, describe your dashboard requirements, and click <strong>Build Dashboard</strong>.<br>AI will generate interactive visualisations tailored to your data.</div>
+          <div class="ready-steps">
+            <div class="ready-step"><span class="step-n">1</span>Upload a CSV or data file</div>
+            <div class="ready-step"><span class="step-n">2</span>Describe your requirements</div>
+            <div class="ready-step"><span class="step-n">3</span>Click Build Dashboard</div>
+            <div class="ready-step"><span class="step-n">4</span>Refine with follow-up prompts</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Status bar -->
+<div class="statusbar">
+  <span id="sb" class="sb-dot">Ready — upload a file to begin</span>
+  <div class="spacer"></div>
+  <span class="sb-r" id="ai-mode-label">Powered by Claude AI</span>
+  <span style="opacity:.4;font-size:10px;margin-left:8px">v1</span>
+</div>
+<div id="toasts"></div>
+
+<!-- Loading overlay -->
+<div class="loading-overlay hidden" id="loading-overlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-msg" id="loading-msg">Processing…</div>
+  <div class="loading-sub" id="loading-sub"></div>
+</div>
+
+<!-- ══ Upload Modal ═════════════════════════════════════════ -->
+<div class="overlay hidden" id="modal-upload">
+  <div class="modal" style="width:540px">
+    <div class="mhdr"><span>⬆ Upload Data File(s)</span><button class="mclose" data-m="modal-upload">✕</button></div>
+    <div class="mbody">
+      <div class="uzone" id="uzone">
+        <div style="font-size:40px;margin-bottom:10px">📁</div>
+        <div>Drag &amp; drop or <label for="file-in" class="flink">browse files</label></div>
+        <div class="usub">CSV · Tab-delimited · Pipe-delimited · JSON · Multiple files supported</div>
+        <input type="file" id="file-in" accept=".csv,.tsv,.txt,.json,.psv,.dat" hidden multiple />
+      </div>
+      <div class="form-row">
+        <label class="flabel">Delimiter</label>
+        <div class="radio-grp">
+          <label><input type="radio" name="delim" value="auto" checked /> Auto-detect</label>
+          <label><input type="radio" name="delim" value="," /> Comma</label>
+          <label><input type="radio" name="delim" value="\t" /> Tab</label>
+          <label><input type="radio" name="delim" value="|" /> Pipe</label>
+          <label><input type="radio" name="delim" value="custom" /> Custom: <input id="cdelim" class="tiny-input" maxlength="3" placeholder=";" /></label>
+        </div>
+      </div>
+      <div class="chk-row">
+        <label><input type="checkbox" id="chk-hdr" checked /> First row header</label>
+        <label><input type="checkbox" id="chk-dyn" checked /> Auto-convert numbers</label>
+        <label><input type="checkbox" id="chk-skip" checked /> Skip empty rows</label>
+      </div>
+      <div id="uprev" class="hidden">
+        <div id="uprev-info" class="prev-info"></div>
+        <div id="uprev-table" class="prev-scroll"></div>
+      </div>
+    </div>
+    <div class="mftr">
+      <span id="ustatus" class="mstatus"></span>
+      <div class="spacer"></div>
+      <button class="sbtn" data-m="modal-upload">Cancel</button>
+      <button class="pbtn" id="btn-import" disabled>Import Dataset</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Settings Modal ══════════════════════════════════════ -->
+<div class="overlay hidden" id="modal-settings">
+  <div class="modal" style="width:460px">
+    <div class="mhdr"><span>⚙ Settings</span><button class="mclose" data-m="modal-settings">✕</button></div>
+    <div class="mbody">
+      <div class="form-row" id="settings-api-row">
+        <label class="flabel">🤖 Claude API Key <span id="ai-status-badge" style="font-weight:400;font-size:11px"></span></label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="password" id="s-apikey" class="tinput" placeholder="sk-ant-api03-…" style="flex:1" />
+          <button class="sbtn" id="btn-test-key" style="white-space:nowrap;height:34px">Test Key</button>
+        </div>
+        <div id="api-test-result" style="font-size:12px;margin-top:4px;min-height:16px"></div>
+        <div class="hint">Get your key at console.anthropic.com · Stored locally in your browser only</div>
+      </div>
+      <div class="form-row" id="settings-mcp-row">
+        <label class="flabel">🔌 Server URL <span id="mcp-status-badge" style="font-weight:400;font-size:11px"></span></label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" id="s-mcp-url" class="tinput" placeholder="http://localhost:3001" style="flex:1" />
+          <button class="sbtn" id="btn-test-mcp" style="white-space:nowrap;height:34px">Test</button>
+        </div>
+        <div id="mcp-test-result" style="font-size:12px;margin-top:4px;min-height:16px"></div>
+        <div class="hint">
+          When hosted on <strong>Render.com</strong>, enter your Render URL here (e.g. <code>https://ai-dashboard-builder.onrender.com</code>).<br>
+          The server uses <strong>Groq cloud LLM</strong> automatically — no Ollama or local setup needed for anyone.
+        </div>
+      </div>
+      <div class="form-row" id="settings-model-row">
+        <label class="flabel">Claude Model</label>
+        <select id="s-model" class="tinput">
+          <option value="claude-sonnet-4-6">Claude Sonnet 4.6 (recommended)</option>
+          <option value="claude-opus-4-7">Claude Opus 4.7 (most capable)</option>
+          <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (fastest)</option>
+          <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label class="flabel">Max chart categories</label>
+        <input type="number" id="s-cats" class="tinput" value="20" min="5" max="100" />
+      </div>
+    </div>
+    <div class="mftr">
+      <div class="spacer"></div>
+      <button class="sbtn" data-m="modal-settings">Cancel</button>
+      <button class="pbtn" id="btn-save-s">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Prompt Guide Modal ════════════════════════════════════ -->
+<div class="overlay hidden" id="modal-prompt-guide">
+  <div class="modal" style="width:640px;max-height:88vh;display:flex;flex-direction:column">
+    <div class="mhdr"><span>📖 Prompt Writing Guide</span><button class="mclose" data-m="modal-prompt-guide">✕</button></div>
+    <div class="mbody" style="overflow-y:auto;flex:1;padding:20px 24px">
+
+      <!-- Intro -->
+      <p style="color:var(--mut);font-size:13px;margin:0 0 18px">Write clear, specific prompts to get the best dashboards. The more detail you give, the better the result.</p>
+
+      <!-- General Instructions -->
+      <div class="pg-section">
+        <div class="pg-sec-title">🧭 General Instructions</div>
+        <ul class="pg-list">
+          <li>Start with a high-level description: <em>"Create a sales dashboard…"</em></li>
+          <li>Name the exact columns from your dataset (column names are shown in the left panel)</li>
+          <li>Specify aggregations: <strong>sum</strong>, <strong>average</strong>, <strong>count</strong>, <strong>max</strong>, <strong>min</strong></li>
+          <li>List all the charts and KPIs you want — AI builds exactly what you describe</li>
+          <li>Use commas to separate multiple chart requests in a single prompt</li>
+        </ul>
+        <div class="pg-example">
+          <div class="pg-ex-label">Example</div>
+          <code>Create a sales performance dashboard with KPI cards for total revenue and order count, a bar chart for revenue by region, and a line chart for monthly sales trend.</code>
+        </div>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="pg-section">
+        <div class="pg-sec-title">📌 KPI Cards</div>
+        <p class="pg-desc">KPI cards show a single aggregated number. Specify the <strong>column</strong> and the <strong>aggregation</strong>.</p>
+        <div class="pg-template">
+          <span class="pg-tag">Pattern</span>
+          <code>KPI card for [aggregation] of [column name]</code>
+        </div>
+        <ul class="pg-list">
+          <li><code>KPI card for total Revenue</code></li>
+          <li><code>KPI card for average Order Value</code></li>
+          <li><code>KPI card for count of Orders</code></li>
+          <li><code>KPI card for max Profit Margin</code></li>
+        </ul>
+        <div class="pg-tip">💡 Tip: Group multiple KPIs together — <em>"KPI cards for total Revenue, count of Orders, and average Discount"</em></div>
+      </div>
+
+      <!-- Charts -->
+      <div class="pg-section">
+        <div class="pg-sec-title">📊 Chart Requests</div>
+        <p class="pg-desc">Name the chart type, the axis columns, and the aggregation.</p>
+        <div class="pg-template">
+          <span class="pg-tag">Pattern</span>
+          <code>[chart type] of [aggregation of Y-column] by [X-column]</code>
+        </div>
+        <div class="pg-chart-grid">
+          <div class="pg-chart-item"><span class="pg-badge">Bar</span><code>bar chart for total Sales by Region</code></div>
+          <div class="pg-chart-item"><span class="pg-badge">Line</span><code>line chart for monthly Revenue trend by Month</code></div>
+          <div class="pg-chart-item"><span class="pg-badge">Area</span><code>area chart for cumulative Revenue over Time</code></div>
+          <div class="pg-chart-item"><span class="pg-badge">Pie</span><code>pie chart for Revenue share by Category</code></div>
+          <div class="pg-chart-item"><span class="pg-badge">Donut</span><code>donut chart for order mix by Product Type</code></div>
+          <div class="pg-chart-item"><span class="pg-badge">Scatter</span><code>scatter plot of Revenue vs Profit by Customer</code></div>
+          <div class="pg-chart-item"><span class="pg-badge">H-Bar</span><code>horizontal bar chart for top 10 Products by Sales</code></div>
+          <div class="pg-chart-item"><span class="pg-badge">Table</span><code>data table showing Region, Sales, and Orders</code></div>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="pg-section">
+        <div class="pg-sec-title">🔍 Filter &amp; Slicer Requests</div>
+        <p class="pg-desc">Filters appear in the left panel and let you drill down interactively.</p>
+        <div class="pg-template">
+          <span class="pg-tag">Pattern</span>
+          <code>add a filter/slicer for [column name]</code>
+        </div>
+        <ul class="pg-list">
+          <li><code>add a filter for Region</code></li>
+          <li><code>add slicers for Category and Year</code></li>
+          <li><code>include date range filter for Order Date</code></li>
+        </ul>
+        <div class="pg-tip">💡 Tip: Filters work best on categorical columns (text) and date columns. Avoid filtering on high-cardinality numeric columns.</div>
+      </div>
+
+      <!-- Full Example -->
+      <div class="pg-section">
+        <div class="pg-sec-title">✨ Full Example Prompt</div>
+        <div class="pg-example pg-example-full">
+          <div class="pg-ex-label">Copy &amp; adapt this</div>
+          <code>Create a sales dashboard with:
+– KPI cards for total Revenue, count of Orders, average Order Value, and max Discount
+– Bar chart for total Revenue by Region
+– Area chart for monthly Revenue trend by Month
+– Donut chart for Revenue share by Product Category
+– Horizontal bar chart for top 10 Customers by Revenue
+– Data table showing Region, Total Sales, Orders, and Avg Value
+– Filters for Region, Category, and Year</code>
+        </div>
+      </div>
+
+      <!-- Refine tip -->
+      <div class="pg-section" style="margin-bottom:4px">
+        <div class="pg-sec-title">🔄 Using Refine</div>
+        <p class="pg-desc">After building, use the <strong>Refine</strong> button to make targeted changes without rebuilding everything:</p>
+        <ul class="pg-list">
+          <li><em>"Change the bar chart to a horizontal bar chart"</em></li>
+          <li><em>"Add a KPI card for total Profit"</em></li>
+          <li><em>"Remove the scatter plot and add a treemap for sales by sub-category"</em></li>
+          <li><em>"Make the trend chart an area chart"</em></li>
+        </ul>
+      </div>
+
+    </div>
+    <div class="mftr">
+      <div class="spacer"></div>
+      <button class="pbtn" data-m="modal-prompt-guide">Got it</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Join Modal ═══════════════════════════════════════════ -->
+<div class="overlay hidden" id="modal-join">
+  <div class="modal jm-modal">
+    <div class="mhdr"><span>⟷ Visual Join Builder</span><button class="mclose" data-m="modal-join" onclick="_jmUnbindEvents()">✕</button></div>
+    <div class="mbody jm-body" id="jm-body"></div>
+    <div class="mftr">
+      <div class="spacer"></div>
+      <button class="sbtn" data-m="modal-join" onclick="_jmUnbindEvents()">Cancel</button>
+      <button class="pbtn" onclick="runJoin()">Execute Join →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Column Selector Modal ════════════════════════════════ -->
+<div class="overlay hidden" id="modal-col-select">
+  <div class="modal cs-modal">
+    <div class="mhdr">
+      <span>☑ Select Columns for Dashboard</span>
+      <button class="mclose" data-m="modal-col-select">✕</button>
+    </div>
+    <div class="mbody cs-mbody">
+      <div class="cs-row-info">
+        <strong id="cs-row-count"></strong>
+        <span id="cs-sel-count" class="cs-sel-info"></span>
+      </div>
+      <div class="cs-shuttle">
+        <!-- Left: available columns -->
+        <div class="cs-side">
+          <div class="cs-side-hdr">Available <span class="cs-count-badge" id="cs-avail-count"></span></div>
+          <div class="cs-list" id="cs-avail-list" onclick="csListClick(event,'avail')"></div>
+        </div>
+
+        <!-- Middle: arrow buttons -->
+        <div class="cs-arrows">
+          <button class="cs-arrow-btn" title="Move all to selected" onclick="csMoveAll('right')">&#xBB;</button>
+          <button class="cs-arrow-btn" title="Move selected to selected" onclick="csMoveSel('right')">&#x203A;</button>
+          <button class="cs-arrow-btn" title="Move selected back" onclick="csMoveSel('left')">&#x2039;</button>
+          <button class="cs-arrow-btn" title="Move all back" onclick="csMoveAll('left')">&#xAB;</button>
+        </div>
+
+        <!-- Right: chosen columns -->
+        <div class="cs-side">
+          <div class="cs-side-hdr">Selected <span class="cs-count-badge cs-count-sel" id="cs-chosen-count"></span></div>
+          <div class="cs-list" id="cs-chosen-list" onclick="csListClick(event,'chosen')"></div>
+        </div>
+      </div>
+    </div>
+    <div class="mftr">
+      <div class="spacer"></div>
+      <button class="sbtn" id="btn-back-to-join">← Back to Join</button>
+      <button class="pbtn" onclick="applyColumnSelection()">Apply &amp; Build Dataset →</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/state.js"></script>
+<script src="js/ui-helpers.js"></script>
+<script src="js/file-parser.js"></script>
+<script src="js/data-processor.js"></script>
+<script src="js/claude-api.js"></script>
+<script src="js/ollama-client.js"></script>
+<script src="js/chart-renderer.js"></script>
+<script src="js/prompt-generator.js"></script>
+<script src="js/data-joiner.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/pbix-exporter.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
