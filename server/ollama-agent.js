@@ -3362,10 +3362,11 @@ async function buildDashboardWithOllama(csvData, columns, colTypes, prompt, file
 
   // Build charts — resolve x/y columns server-side by title + index
   const rawCharts = Array.isArray(raw.charts) ? raw.charts : [];
+  const _promptLineTypesMain = _chartTypesFromPromptLines(prompt);
   const charts = rawCharts.map((c, i) => {
     try {
       const title = String(c.title || `Chart ${i+1}`);
-      const type  = sanitizeType(c.type);
+      const type  = (_promptLineTypesMain[i]) ? _promptLineTypesMain[i] : sanitizeType(c.type);
       if (type === 'table') {
         return { id: `chart${i+1}`, title, type: 'table', x_column: null, y_column: null,
                  columns: _extractTableColumns(prompt, columns), aggregation: 'none', width: 2 };
@@ -3665,6 +3666,64 @@ async function checkOllamaHealth(ollamaUrl, model) {
 }
 
 /* ═══════════════════════════════════════════════
+   PROMPT-LINE → CHART TYPE EXTRACTOR
+   Parses each bullet line from the chart-type-card
+   UI (e.g. "- Create a line chart showing …") and
+   returns the canonical chart type string.
+   Used to override whatever type the LLM returned,
+   which is often wrong for multi-chart prompts.
+═══════════════════════════════════════════════ */
+
+function _typeFromPromptLine(line) {
+  const l = line.toLowerCase();
+  // Order matters: more-specific patterns first
+  if (/\bsankey\b/.test(l))                                         return 'sankey';
+  if (/\bgantt\b/.test(l))                                          return 'gantt';
+  if (/\bbullet\b/.test(l))                                         return 'bullet';
+  if (/\bsunburst\b/.test(l))                                       return 'sunburst';
+  if (/\bhierarchy\s*tree\b|\borg\s*chart\b|\bicicle\b|\bhierarchy\b/.test(l)) return 'icicle';
+  if (/\btreemap\b|\btree\s*map\b/.test(l))                         return 'treemap';
+  if (/\bheatmap\b|\bheat\s*map\b/.test(l))                         return 'heatmap';
+  if (/\bchoropleth\b|\bfilled\s*map\b/.test(l))                    return 'choropleth';
+  if (/\bmap\s+visual\b|\bscatter\s*geo\b|\bbubble\s*map\b/.test(l)) return 'scattergeo';
+  if (/\bgauge\b|\bspeedometer\b|\bkpi\s+(?:visual|indicator)\b/.test(l)) return 'gauge';
+  if (/\bmulti[-\s]?row\s+card\b|\bmetrics?\s+card\b/.test(l))     return 'multi_row_card';
+  if (/\bmatrix\b|\bcross[-\s]tab\b|\bpivot\b/.test(l))            return 'matrix';
+  if (/\bdata\s*table\b|\btable\s+(?:chart|visual)\b/.test(l))     return 'table';
+  if (/\bbox\s+(?:and\s+)?whisker\b|\bbox\s*plot\b/.test(l))       return 'box';
+  if (/\bmarimekko\b|\bmekko\b|\bmosaic\b/.test(l))                return 'marimekko';
+  if (/\bhistogram\b|\bfrequency\s+dist/.test(l))                  return 'histogram';
+  if (/\bwaterfall\b/.test(l))                                      return 'waterfall';
+  if (/\bfunnel\b/.test(l))                                         return 'funnel';
+  if (/\bcombo\b|\bline\s+and\s+(?:stacked|clustered)?\s*(?:bar|column)\b|\b(?:stacked|clustered)?\s*(?:bar|column)\s+and\s+line\b/.test(l)) return 'combo';
+  if (/\bbubble\b/.test(l))                                         return 'bubble';
+  if (/\bscatter\b/.test(l))                                        return 'scatter';
+  if (/\bdonut\b|\bdoughnut\b/.test(l))                             return 'donut';
+  if (/\bpie\b/.test(l))                                            return 'pie';
+  if (/\bstacked\s+area\b/.test(l))                                 return 'area';
+  if (/\barea\b/.test(l))                                           return 'area';
+  if (/\bline\b/.test(l))                                           return 'line';
+  if (/\bstacked\s+(?:bar|column)\b|100\s*%\s*stacked\b/.test(l))  return 'bar';
+  if (/\bhorizontal\s+bar\b|\bclustered\s+bar\b/.test(l))          return 'bar';
+  if (/\bbar\b|\bcolumn\b/.test(l))                                 return 'bar';
+  return null;
+}
+
+/* Extract an ordered list of chart types from multi-line bullet prompts.
+   Returns [] when the prompt is free-form (not from the chart-type-card UI). */
+function _chartTypesFromPromptLines(prompt) {
+  if (!prompt) return [];
+  const lines = prompt.split(/\n/).map(l => l.replace(/^\s*[-•*]\s*/, '').trim()).filter(Boolean);
+  // Only apply when there are 2+ lines (single-line = free-form or single chart)
+  if (lines.length < 2) return [];
+  const types = lines.map(l => _typeFromPromptLine(l));
+  // If fewer than half the lines resolved, this is free-form text — don't override
+  const resolved = types.filter(Boolean).length;
+  if (resolved < Math.ceil(lines.length / 2)) return [];
+  return types; // may contain nulls for non-chart lines (KPI lines etc.)
+}
+
+/* ═══════════════════════════════════════════════
    PROCESS PRE-FETCHED OLLAMA CONTENT
    Used when the browser calls Ollama itself and
    sends the raw LLM content to the server.
@@ -3701,10 +3760,18 @@ async function processOllamaContent(ollamaContent, csvData, columns, colTypes, p
   _injectComparisonKPIs(kpi_cards, prompt, columns, colTypes);
 
   const rawCharts2 = Array.isArray(raw.charts) ? raw.charts : [];
+
+  // When the user built the prompt using the chart-type-card UI, each bullet line names
+  // an explicit chart type. Extract those types and use them to override whatever the LLM
+  // returned — small/fast models (llama-3.1-8b-instant) reliably misassign types for
+  // multi-chart prompts, returning "bar" for everything.
+  const _promptLineTypes = _chartTypesFromPromptLines(prompt);
+
   const charts = rawCharts2.map((c, i) => {
     try {
       const title    = String(c.title || `Chart ${i+1}`);
-      const type     = sanitizeType(c.type);
+      // Override LLM type with the type parsed directly from the matching prompt line when available
+      const type     = (_promptLineTypes[i]) ? _promptLineTypes[i] : sanitizeType(c.type);
       if (type === 'table') {
         return { id: `chart${i+1}`, title, type: 'table', x_column: null, y_column: null,
                  columns: _extractTableColumns(prompt, columns), aggregation: 'none', width: 2 };
