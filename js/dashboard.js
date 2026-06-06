@@ -504,30 +504,30 @@ function renderDashboard(spec) {
     </div>`;
   });
 
-  /* Purge any existing Plotly charts before replacing the DOM.
-     This clears Plotly's internal registry so old IDs don't interfere. */
+  /* Purge existing Plotly charts before swapping the DOM */
   document.querySelectorAll('.plotly-chart').forEach(el => {
     if (el._fullLayout) try { Plotly.purge(el); } catch (_) {}
   });
 
   grid.innerHTML = html;
 
-  /* Double-RAF ensures the browser has computed layout for all new
-     containers before Plotly tries to measure them. */
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      validChartsWithUID.forEach((c, idx) => {
-        setTimeout(() => renderChart(c, data), idx * 30);
-      });
-
-      /* Final relayout pass after all charts are rendered */
-      setTimeout(() => {
-        document.querySelectorAll('.plotly-chart').forEach(el => {
-          if (el._fullLayout) try { Plotly.relayout(el, { autosize: true }); } catch (_) {}
-        });
-      }, validChartsWithUID.length * 30 + 200);
-    });
-  });
+  /* ── Sequential async rendering ─────────────────────────────────────
+     We await each Plotly.newPlot() before starting the next chart.
+     This guarantees:
+       1. The browser has finished painting the previous chart's container
+          before we read offsetWidth for the next one.
+       2. Plotly never has two simultaneous newPlot calls competing for
+          the same layout-flush, which was the root cause of distortion.
+       3. Each chart gets its own isolated execution context.
+  ────────────────────────────────────────────────────────────────────── */
+  (async () => {
+    for (const c of validChartsWithUID) {
+      /* One rAF per chart — lets the browser settle the container's
+         display:block width before we call offsetWidth inside renderChart */
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      await renderChart(c, data);
+    }
+  })();
 
   renderFilterBar(spec);
   renderSlicers(spec);
@@ -774,15 +774,14 @@ function _refreshChartsAfterFilter() {
     }
   });
 
-  /* Re-render non-slicer charts with the same double-RAF + stagger approach */
+  /* Sequential async re-render after filter change */
   const nonSlicers = (spec.charts || []).filter(c => c.type !== 'slicer');
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      nonSlicers.forEach((c, idx) => {
-        setTimeout(() => renderChart(c, data), idx * 30);
-      });
-    });
-  });
+  (async () => {
+    for (const c of nonSlicers) {
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      await renderChart(c, data);
+    }
+  })();
 
   renderFilterBar(spec);
   renderSlicers(spec);

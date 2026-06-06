@@ -14,9 +14,14 @@
   window.addEventListener('resize', function () {
     clearTimeout(_resizeTimer);
     _resizeTimer = setTimeout(function () {
+      /* Re-measure each chart's container and relayout with new pixel dimensions */
       document.querySelectorAll('.plotly-chart').forEach(function (el) {
         if (!el.id || !el._fullLayout) return;
-        try { Plotly.relayout(el, { autosize: true }); } catch (_) {}
+        try {
+          const w = el.offsetWidth;
+          const h = el.offsetHeight || 340;
+          if (w > 10) Plotly.relayout(el, { width: w, height: h });
+        } catch (_) {}
       });
     }, 150);
   });
@@ -37,14 +42,14 @@ function getBaseLayout() {
     xaxis: { gridcolor: '#2e2e50', zerolinecolor: '#2e2e50', tickfont: { color: '#94a3b8', size: 11 }, tickformat: ',.2f' },
     yaxis: { gridcolor: '#2e2e50', zerolinecolor: '#2e2e50', tickfont: { color: '#94a3b8', size: 11 }, tickformat: ',.2f' },
     hoverlabel: { bgcolor: '#252540', bordercolor: '#7c3aed', font: { color: '#e2e8f0' } },
-    autosize: true
+    autosize: false   /* dimensions always set explicitly in renderChart */
   };
 }
 
 function getPlotlyConfig(chartTitle) {
   const cfg = AppState.config?.chart ?? {};
   return {
-    responsive: true,
+    responsive: false,   /* we handle resize manually — avoids ResizeObserver conflicts */
     displayModeBar: true,
     displaylogo: false,
     modeBarButtonsToRemove: ['sendDataToCloud', 'select2d', 'lasso2d', 'autoScale2d'],
@@ -80,64 +85,71 @@ function getColorScale(scheme) {
 
 /**
  * Render a single chart into its DOM container.
+ * Always returns a Promise so callers can await sequential completion.
  * @param {Object}   spec  - Chart specification from Claude
  * @param {Object[]} data  - Filtered dataset
+ * @returns {Promise}
  */
 function renderChart(spec, data) {
   const el = document.getElementById(spec.id);
-  if (!el) return;
+  if (!el) return Promise.resolve();
 
+  /* ── Non-Plotly chart types — render synchronously, resolve immediately ── */
   if (spec.type === 'table') {
-    try {
-      renderTableChart(spec, data, el);
-    } catch (err) {
-      el.innerHTML = `<div class="chart-error">⚠️ Table render error: ${err.message}</div>`;
-      console.error('Table render error:', spec, err);
-    }
-    return;
+    try { renderTableChart(spec, data, el); }
+    catch (err) { el.innerHTML = `<div class="chart-error">⚠️ Table error: ${err.message}</div>`; }
+    return Promise.resolve();
   }
-
   if (spec.type === 'multi_row_card') {
-    try {
-      renderMultiRowCard(spec, data, el);
-    } catch (err) {
-      el.innerHTML = `<div class="chart-error">⚠️ Multi-row card error: ${err.message}</div>`;
-      console.error('Multi-row card error:', spec, err);
-    }
-    return;
+    try { renderMultiRowCard(spec, data, el); }
+    catch (err) { el.innerHTML = `<div class="chart-error">⚠️ Card error: ${err.message}</div>`; }
+    return Promise.resolve();
   }
-
   if (spec.type === 'slicer') {
-    try {
-      renderButtonSlicer(spec, el);
-    } catch (err) {
-      el.innerHTML = `<div class="chart-error">⚠️ Slicer error: ${err.message}</div>`;
-      console.error('Slicer error:', spec, err);
-    }
-    return;
+    try { renderButtonSlicer(spec, el); }
+    catch (err) { el.innerHTML = `<div class="chart-error">⚠️ Slicer error: ${err.message}</div>`; }
+    return Promise.resolve();
   }
-
   if (spec.type === 'matrix') {
-    try {
-      renderMatrixChart(spec, data, el);
-    } catch (err) {
-      el.innerHTML = `<div class="chart-error">⚠️ Matrix render error: ${err.message}</div>`;
-      console.error('Matrix render error:', spec, err);
-    }
-    return;
+    try { renderMatrixChart(spec, data, el); }
+    catch (err) { el.innerHTML = `<div class="chart-error">⚠️ Matrix error: ${err.message}</div>`; }
+    return Promise.resolve();
   }
 
+  /* ── Plotly chart types ──────────────────────────────────────────────────
+     Read the container's actual pixel width via offsetWidth (reliable on a
+     block element with an explicit CSS height).  Pass width + height directly
+     in the layout so Plotly never has to guess or measure asynchronously.
+     autosize:false + responsive:false stops Plotly from re-measuring after
+     render, which was the source of inter-chart ResizeObserver conflicts.
+  ────────────────────────────────────────────────────────────────────────── */
   try {
     const layout = getBaseLayout();
     layout.colorway = getColors();
+
+    /* Explicit pixel dimensions — offsetWidth is always correct here because
+       the element is a display:block child of a fixed-height .chart-body */
+    const chartW = el.offsetWidth  || el.parentElement?.offsetWidth  || 600;
+    const chartH = el.offsetHeight || 340;
+    layout.width    = chartW;
+    layout.height   = chartH;
+    layout.autosize = false;
+
     const traces = buildTraces(spec, data, layout);
-    Plotly.newPlot(spec.id, traces, layout, getPlotlyConfig(spec.title));
+
+    /* Return the Plotly Promise so callers can await completion */
+    return Plotly.newPlot(spec.id, traces, layout, getPlotlyConfig(spec.title))
+      .catch(err => {
+        el.innerHTML = `<div class="chart-error">⚠️ Render error: ${err.message}</div>`;
+        console.error('Chart render error:', spec, err);
+      });
   } catch (err) {
     el.innerHTML = `<div class="chart-error">
       ⚠️ Render error: ${err.message}<br>
       <small>Type: ${spec.type} | x: ${spec.x_column} | y: ${spec.y_column}</small>
     </div>`;
     console.error('Chart render error:', spec, err);
+    return Promise.resolve();
   }
 }
 
