@@ -484,30 +484,41 @@ function renderDashboard(spec) {
 
   grid.innerHTML = html;
 
-  /* ── Staggered chart rendering ───────────────────────────────────────
-     All charts at the same timeout causes Plotly to read zero/wrong
-     container dimensions before the CSS grid has settled.
-     Staggering by 55 ms per chart lets each container fully lay out
-     before Plotly measures it.
-     After all charts finish, a final relayout pass fixes any remaining
-     size mismatches (e.g. wide cards that shifted the grid).
+  /* ── Double requestAnimationFrame render scheduling ──────────────────
+     Problem: all charts firing at the same setTimeout tick means Plotly
+     reads container dimensions before the browser's flex/grid layout
+     has settled, producing squished or zero-size charts.
+
+     Fix: wrap renders in double-RAF (two animation-frame callbacks).
+     After innerHTML, the first RAF fires once the browser has processed
+     the DOM changes. The second RAF fires once the browser has computed
+     layout and painted — at that point getBoundingClientRect() inside
+     renderChart returns the correct, fully-settled dimensions.
+
+     We also stagger by 30 ms between charts so that multiple concurrent
+     Plotly.newPlot calls don't contend for the same layout flush.
   ──────────────────────────────────────────────────────────────────── */
-  const STAGGER_MS   = 55;   // gap between successive chart renders
-  const INITIAL_MS   = 60;   // first render starts after DOM settles
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      validCharts.forEach((c, idx) => {
+        setTimeout(() => renderChart(c, data), idx * 30);
+      });
 
-  validCharts.forEach((c, idx) => {
-    setTimeout(() => renderChart(c, data), INITIAL_MS + idx * STAGGER_MS);
-  });
-
-  /* Final relayout pass — runs after every chart has had a chance to render */
-  const finalMs = INITIAL_MS + validCharts.length * STAGGER_MS + 250;
-  setTimeout(() => {
-    document.querySelectorAll('.plotly-chart').forEach(el => {
-      if (el._fullLayout) {
-        try { Plotly.relayout(el, { autosize: true }); } catch (_) {}
-      }
+      /* Final relayout — re-measure every chart after all have rendered
+         to fix any container that changed size due to neighbouring cards */
+      setTimeout(() => {
+        document.querySelectorAll('.plotly-chart').forEach(el => {
+          if (!el._fullLayout) return;
+          try {
+            const r = el.getBoundingClientRect();
+            if (r.width > 10 && r.height > 10) {
+              Plotly.relayout(el, { width: Math.floor(r.width), height: Math.floor(r.height) });
+            }
+          } catch (_) {}
+        });
+      }, validCharts.length * 30 + 200);
     });
-  }, finalMs);
+  });
 
   renderFilterBar(spec);
   renderSlicers(spec);
@@ -754,10 +765,14 @@ function _refreshChartsAfterFilter() {
     }
   });
 
-  /* Stagger filter re-renders the same way as initial render */
+  /* Re-render non-slicer charts with the same double-RAF + stagger approach */
   const nonSlicers = (spec.charts || []).filter(c => c.type !== 'slicer');
-  nonSlicers.forEach((c, idx) => {
-    setTimeout(() => renderChart(c, data), idx * 40);
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      nonSlicers.forEach((c, idx) => {
+        setTimeout(() => renderChart(c, data), idx * 30);
+      });
+    });
   });
 
   renderFilterBar(spec);
