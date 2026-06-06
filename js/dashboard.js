@@ -357,21 +357,27 @@ function renderDashboard(spec) {
   const grid   = document.getElementById('charts-grid');
   const colSet = new Set(AppState.columns);
 
-  /* ── Pre-calculate exact pixel dimensions matching the CSS grid ──────
-     Measure the grid container BEFORE touching innerHTML so we get the
-     stable, already-painted width.  We replicate the CSS formula for
-     repeat(auto-fill, minmax(420px, 1fr)) with gap:14px exactly.
-     These pixel values are baked into data-w/data-h attributes on every
-     .plotly-chart div so renderChart never needs to measure anything.
+  /* ── Measure grid dimensions with a forced synchronous layout flush ──
+     getBoundingClientRect() forces the browser to finish all pending
+     layout calculations before returning — unlike clientWidth which can
+     return a stale value if the browser hasn't repainted yet (common on
+     slow web connections after a long server round-trip).
+     This is the fix for "works on localhost, distorted on web" because
+     on web the server takes 5-15 s and the browser may have reflowed
+     while waiting; forcing a flush here guarantees the current value.
   ────────────────────────────────────────────────────────────────────── */
-  const _PADDING  = 28;   // padding:14px on each side of .charts-grid
+  const _PADDING  = 28;
   const _GAP      = 14;
   const _MIN_COL  = 420;
   const _CHART_H  = 340;
-  const _gridW    = (grid.clientWidth || 900) - _PADDING;
-  const _numCols  = Math.max(1, Math.floor((_gridW + _GAP) / (_MIN_COL + _GAP)));
-  const _colW     = Math.max(300, Math.floor((_gridW - (_numCols - 1) * _GAP) / _numCols));
-  const _wideW    = _gridW;
+
+  /* Force a synchronous layout flush so getBoundingClientRect is accurate */
+  void grid.getBoundingClientRect();
+  const _rawW   = grid.getBoundingClientRect().width || grid.clientWidth || 900;
+  const _gridW  = Math.max(300, _rawW - _PADDING);
+  const _numCols = Math.max(1, Math.floor((_gridW + _GAP) / (_MIN_COL + _GAP)));
+  const _colW   = Math.max(280, Math.floor((_gridW - (_numCols - 1) * _GAP) / _numCols));
+  const _wideW  = _gridW;
 
   const hint = document.getElementById('ready-hint');
   if (hint) hint.style.display = 'none';
@@ -535,12 +541,14 @@ function renderDashboard(spec) {
   grid.innerHTML = html;
 
   /* ── Sequential async rendering ─────────────────────────────────────
-     Dimensions come from pre-baked data-pw/data-ph attributes, so no
-     timing or layout measurement is needed before each call.
-     We still render sequentially (await each Plotly.newPlot Promise)
-     to avoid simultaneous DOM mutations and memory spikes.
+     Wait one paint frame after innerHTML so the browser assigns block
+     widths to the new .plotly-chart elements, then render each chart
+     sequentially (await Plotly.newPlot Promise) — no two charts ever
+     write to the DOM at the same time.
   ────────────────────────────────────────────────────────────────────── */
   (async () => {
+    /* One rAF so new elements have display:block widths before Plotly reads them */
+    await new Promise(r => requestAnimationFrame(r));
     for (const c of validChartsWithUID) {
       await renderChart(c, data);
     }
@@ -821,7 +829,7 @@ async function buildDashboard() {
       AppState.currentSpec = spec;
       AppState.filters     = {};
       addLogEntry('assistant', `Auto-built: "${spec.title}" — ${spec.charts?.length||0} charts, ${spec.kpi_cards?.length||0} KPIs`);
-      renderDashboard(spec);
+      requestAnimationFrame(() => requestAnimationFrame(() => renderDashboard(spec)));
       document.getElementById('btn-refine').disabled = false;
       document.getElementById('btn-download-pbix').disabled = false;
       document.getElementById('prompt-input').value = '';
@@ -867,7 +875,7 @@ ${prompt}`;
     AppState.currentSpec = spec;
     AppState.filters     = {};
     addLogEntry('assistant', `Built: "${spec.title}" — ${spec.charts?.length || 0} charts, ${spec.kpi_cards?.length || 0} KPIs`);
-    renderDashboard(spec);
+    requestAnimationFrame(() => requestAnimationFrame(() => renderDashboard(spec)));
     document.getElementById('btn-refine').disabled = false;
     document.getElementById('btn-download-pbix').disabled = false;
     document.getElementById('prompt-input').value = '';
@@ -903,7 +911,7 @@ async function refineDashboard() {
     AppState.currentSpec = spec;
     AppState.filters     = {};
     addLogEntry('assistant', `Refined — ${spec.charts?.length || 0} charts, ${spec.kpi_cards?.length || 0} KPIs`);
-    renderDashboard(spec);
+    requestAnimationFrame(() => requestAnimationFrame(() => renderDashboard(spec)));
     document.getElementById('prompt-input').value = '';
     toast('Dashboard refined! ✓', 'success');
   } catch (err) {
@@ -983,7 +991,14 @@ async function _buildPowerBI() {
 
     AppState.currentSpec = previewSpec;
     AppState.filters = {};
-    renderDashboard(previewSpec);
+    /* Wait for the loading overlay to hide and the grid to repaint
+       before measuring its width — critical on web where the overlay
+       dismissal triggers a reflow that changes grid.clientWidth */
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        renderDashboard(previewSpec);
+      });
+    });
 
     // Decode base64 pbit and trigger download
     const pbitBlob = _base64ToBlob(result.pbitBase64, 'application/octet-stream');
