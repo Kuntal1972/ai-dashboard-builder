@@ -468,7 +468,29 @@ function renderDashboard(spec) {
     }).join('')}</div>`;
   }
 
-  validCharts.forEach(c => {
+  /* ── Assign guaranteed-unique DOM IDs for this render pass ──────────
+     Claude/auto-generate can return the same IDs (c1, c2…) on every
+     build/refine.  If the previous dashboard had a chart with id="c1"
+     and the new one also has "c1", Plotly can find its stale internal
+     state for the old (now-detached) element and render into the wrong
+     container, causing distorted or blank charts.
+     A timestamp prefix makes every render's IDs globally unique.
+  ──────────────────────────────────────────────────────────────────── */
+  const _uid = `ch${Date.now()}`;
+  const validChartsWithUID = validCharts.map((c, idx) => ({
+    ...c,
+    id: `${_uid}_${idx}`
+  }));
+
+  /* Write the UID-mapped IDs back into spec.charts (1-to-1 by index,
+     since validCharts is a direct .map() of spec.charts) so that
+     _refreshChartsAfterFilter and renderSlicers find the correct elements. */
+  spec.charts = spec.charts.map((c, i) => ({
+    ...c,
+    id: validChartsWithUID[i] ? validChartsWithUID[i].id : c.id
+  }));
+
+  validChartsWithUID.forEach(c => {
     const dbgText      = `x:${c.x_column} | y:${c.y_column} | ${c.aggregation}`;
     const isTableLike  = ['table', 'matrix', 'multi_row_card'].includes(c.type);
     const isSlicerCard = c.type === 'slicer';
@@ -482,41 +504,28 @@ function renderDashboard(spec) {
     </div>`;
   });
 
+  /* Purge any existing Plotly charts before replacing the DOM.
+     This clears Plotly's internal registry so old IDs don't interfere. */
+  document.querySelectorAll('.plotly-chart').forEach(el => {
+    if (el._fullLayout) try { Plotly.purge(el); } catch (_) {}
+  });
+
   grid.innerHTML = html;
 
-  /* ── Double requestAnimationFrame render scheduling ──────────────────
-     Problem: all charts firing at the same setTimeout tick means Plotly
-     reads container dimensions before the browser's flex/grid layout
-     has settled, producing squished or zero-size charts.
-
-     Fix: wrap renders in double-RAF (two animation-frame callbacks).
-     After innerHTML, the first RAF fires once the browser has processed
-     the DOM changes. The second RAF fires once the browser has computed
-     layout and painted — at that point getBoundingClientRect() inside
-     renderChart returns the correct, fully-settled dimensions.
-
-     We also stagger by 30 ms between charts so that multiple concurrent
-     Plotly.newPlot calls don't contend for the same layout flush.
-  ──────────────────────────────────────────────────────────────────── */
+  /* Double-RAF ensures the browser has computed layout for all new
+     containers before Plotly tries to measure them. */
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-      validCharts.forEach((c, idx) => {
+      validChartsWithUID.forEach((c, idx) => {
         setTimeout(() => renderChart(c, data), idx * 30);
       });
 
-      /* Final relayout — re-measure every chart after all have rendered
-         to fix any container that changed size due to neighbouring cards */
+      /* Final relayout pass after all charts are rendered */
       setTimeout(() => {
         document.querySelectorAll('.plotly-chart').forEach(el => {
-          if (!el._fullLayout) return;
-          try {
-            const r = el.getBoundingClientRect();
-            if (r.width > 10 && r.height > 10) {
-              Plotly.relayout(el, { width: Math.floor(r.width), height: Math.floor(r.height) });
-            }
-          } catch (_) {}
+          if (el._fullLayout) try { Plotly.relayout(el, { autosize: true }); } catch (_) {}
         });
-      }, validCharts.length * 30 + 200);
+      }, validChartsWithUID.length * 30 + 200);
     });
   });
 
@@ -761,7 +770,7 @@ function _refreshChartsAfterFilter() {
          simultaneous Plotly.newPlot calls competing for container dimensions */
       const el = document.getElementById(c.id);
       if (!el) return;
-      try { if (typeof Plotly !== 'undefined') Plotly.purge(c.id); } catch (_) {}
+      try { if (typeof Plotly !== 'undefined') Plotly.purge(el); } catch (_) {}
     }
   });
 

@@ -14,18 +14,9 @@
   window.addEventListener('resize', function () {
     clearTimeout(_resizeTimer);
     _resizeTimer = setTimeout(function () {
-      /* Re-measure and relayout every active Plotly chart.
-         We pass explicit width/height (not autosize:true) because
-         responsive:false is set in the Plotly config — autosize would
-         be ignored without responsive mode. */
       document.querySelectorAll('.plotly-chart').forEach(function (el) {
         if (!el.id || !el._fullLayout) return;
-        try {
-          const r = el.getBoundingClientRect();
-          if (r.width > 10 && r.height > 10) {
-            Plotly.relayout(el, { width: Math.floor(r.width), height: Math.floor(r.height) });
-          }
-        } catch (_) {}
+        try { Plotly.relayout(el, { autosize: true }); } catch (_) {}
       });
     }, 150);
   });
@@ -45,17 +36,15 @@ function getBaseLayout() {
     legend: { font: { color: '#94a3b8', size: 11 }, bgcolor: 'rgba(0,0,0,0)' },
     xaxis: { gridcolor: '#2e2e50', zerolinecolor: '#2e2e50', tickfont: { color: '#94a3b8', size: 11 }, tickformat: ',.2f' },
     yaxis: { gridcolor: '#2e2e50', zerolinecolor: '#2e2e50', tickfont: { color: '#94a3b8', size: 11 }, tickformat: ',.2f' },
-    hoverlabel: { bgcolor: '#252540', bordercolor: '#7c3aed', font: { color: '#e2e8f0' } }
+    hoverlabel: { bgcolor: '#252540', bordercolor: '#7c3aed', font: { color: '#e2e8f0' } },
+    autosize: true
   };
 }
 
 function getPlotlyConfig(chartTitle) {
   const cfg = AppState.config?.chart ?? {};
   return {
-    /* responsive:false — we handle resizing via our own debounced global listener.
-       Having Plotly's built-in ResizeObserver active on many simultaneous charts
-       causes observers to fire on each other's containers, producing distorted renders. */
-    responsive: false,
+    responsive: true,
     displayModeBar: true,
     displaylogo: false,
     modeBarButtonsToRemove: ['sendDataToCloud', 'select2d', 'lasso2d', 'autoScale2d'],
@@ -141,16 +130,6 @@ function renderChart(spec, data) {
   try {
     const layout = getBaseLayout();
     layout.colorway = getColors();
-
-    /* Read the container's actual pixel dimensions BEFORE calling Plotly.
-       getBoundingClientRect() triggers a synchronous layout flush, so we
-       always get the correct value regardless of when this runs.
-       Passing explicit width/height prevents Plotly from reading a stale
-       or zero-size value from a partially-settled flex/grid container. */
-    const rect = el.getBoundingClientRect();
-    if (rect.width  > 10) layout.width  = Math.floor(rect.width);
-    if (rect.height > 10) layout.height = Math.floor(rect.height);
-
     const traces = buildTraces(spec, data, layout);
     Plotly.newPlot(spec.id, traces, layout, getPlotlyConfig(spec.title));
   } catch (err) {

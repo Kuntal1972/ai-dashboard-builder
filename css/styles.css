@@ -336,12 +336,13 @@ header{display:flex;align-items:center;gap:8px;padding:0 18px;height:50px;backgr
 .chart-hdr{padding:12px 14px 4px;display:flex;align-items:center;gap:6px;flex-shrink:0}
 .chart-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--mut)}
 .chart-title::before{content:'● ';color:#10b981;font-size:10px}
-.chart-body{flex:1;position:relative;min-height:320px}
-.plotly-chart{position:absolute;inset:0;width:100%!important;height:100%!important}
+.chart-body{flex:1;overflow:hidden;min-height:320px}
+.plotly-chart{display:block;width:100%!important;height:340px!important}
 .chart-card.sankey-card{min-height:560px}.chart-card.sankey-card .chart-body{min-height:500px}
+.chart-card.sankey-card .plotly-chart{height:500px!important}
 .chart-card.table-card{min-height:auto;overflow:visible}
-.chart-card.table-card .chart-body{min-height:auto;position:relative;overflow:visible}
-.chart-card.table-card .plotly-chart{position:relative!important;inset:auto!important;height:auto!important;width:100%!important;overflow:auto;max-height:460px}
+.chart-card.table-card .chart-body{min-height:auto;overflow:visible}
+.chart-card.table-card .plotly-chart{height:auto!important;overflow:auto;max-height:460px}
 .dt-wrap{display:flex;flex-direction:column}
 .dt-table{width:100%;border-collapse:collapse;font-size:12px}
 .dt-table thead{position:sticky;top:0;z-index:1;background:var(--s2)}
@@ -360,8 +361,8 @@ header{display:flex;align-items:center;gap:8px;padding:0 18px;height:50px;backgr
 
 /* Button Slicer card */
 .slicer-card{min-height:auto!important}
-.slicer-card .chart-body{min-height:auto!important}
-.slicer-card .plotly-chart{position:relative!important;inset:auto!important;height:auto!important;width:100%!important;overflow:visible}
+.slicer-card .chart-body{min-height:auto!important;overflow:visible}
+.slicer-card .plotly-chart{height:auto!important;overflow:visible}
 .slicer-btn-wrap{display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px 14px}
 .slicer-btn{padding:5px 14px;border-radius:4px;border:1px solid var(--bd);background:var(--s2);color:var(--mut);font-size:12px;font-weight:500;cursor:pointer;transition:background .12s,color .12s,border-color .12s;white-space:nowrap;line-height:1.5}
 .slicer-btn:hover{border-color:var(--acc);color:var(--txt)}
