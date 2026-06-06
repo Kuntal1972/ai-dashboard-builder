@@ -1,0 +1,180 @@
+
+=== AI Dashboard Builder ===
+   App:  http://localhost:3001
+   LLM:  Local Ollama — run: ollama serve
+   Tip:  set GROQ_API_KEY for cloud LLM (free at console.groq.com)
+============================
+
+[PowerBI] "test.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: Sr. no[number], Employee ID[string], Full Name[string], Job Title[string], Department[string], Business Unit[string], Gender[string], Ethnicity[string], Age[number], Hire Date[string], Annual Salary[number], Bonus %[number], Country[string], City[string], Exit Date[string]
+[ollama-agent] Stacked area injected: cat=Country, color=Department, val=null, agg=count
+[ollama-agent] Spec: "Employee Country Distribution" — 1 charts, 0 KPIs
+[ollama-agent] KPIs: 
+[ollama-agent] Charts: Country by Department (stacked area)[area x:Country y:null]
+[PowerBI] "test.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: Sr. no[number], Employee ID[string], Full Name[string], Job Title[string], Department[string], Business Unit[string], Gender[string], Ethnicity[string], Age[number], Hire Date[string], Annual Salary[number], Bonus %[number], Country[string], City[string], Exit Date[string]
+[ollama-agent] Stacked area injected: cat=Country, color=Department, val=null, agg=count
+[ollama-agent] Spec: "Employee Count by Country" — 1 charts, 0 KPIs
+[ollama-agent] KPIs: 
+[ollama-agent] Charts: Country by Department (stacked area)[area x:Country y:null]
+[PowerBI] "test.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: Sr. no[number], Employee ID[string], Full Name[string], Job Title[string], Department[string], Business Unit[string], Gender[string], Ethnicity[string], Age[number], Hire Date[string], Annual Salary[number], Bonus %[number], Country[string], City[string], Exit Date[string]
+[ollama-agent] Stacked area injected: cat=Country, color=Department, val=null, agg=count
+[ollama-agent] Spec: "Employee Count by Country" — 1 charts, 0 KPIs
+[ollama-agent] KPIs: 
+[ollama-agent] Charts: Country by Department (stacked area)[area x:Country y:null]
+[PowerBI] "test.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: Sr. no[number], Employee ID[string], Full Name[string], Job Title[string], Department[string], Business Unit[string], Gender[string], Ethnicity[string], Age[number], Hire Date[string], Annual Salary[number], Bonus %[number], Country[string], City[string], Exit Date[string]
+[ollama-agent] Stacked area injected: cat=Country, color=Department, val=null, agg=count
+[ollama-agent] Spec: "Employee Count by Country" — 1 charts, 0 KPIs
+[ollama-agent] KPIs: 
+[ollama-agent] Charts: Country Count[area x:Country y:null]
+[PowerBI] "test.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: Sr. no[number], Employee ID[string], Full Name[string], Job Title[string], Department[string], Business Unit[string], Gender[string], Ethnicity[string], Age[number], Hire Date[string], Annual Salary[number], Bonus %[number], Country[string], City[string], Exit Date[string]
+[ollama-agent] Spec: "Employee Distribution by Department" — 1 charts, 2 KPIs
+[ollama-agent] KPIs: Departmental Breakdown[sum:Bonus %] | IT vs HR vs Finance[sum:Bonus %]
+[ollama-agent] Charts: Pie Chart: Employee Distribution by Department[pie x:Department y:null]
+[PowerBI] "test.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: Sr. no[number], Employee ID[string], Full Name[string], Job Title[string], Department[string], Business Unit[string], Gender[string], Ethnicity[string], Age[number], Hire Date[string], Annual Salary[number], Bonus %[number], Country[string], City[string], Exit Date[string]
+[ollama-agent] Spec: "Headcount by Gender" — 1 charts, 3 KPIs
+[ollama-agent] KPIs: Total Headcount[count:Sr. no] | Male Headcount[count:Sr. no] | Female Headcount[count:Sr. no]
+[ollama-agent] Charts: Pie Chart: Headcount by Gender[pie x:Gender y:null]
+[PowerBI] "test.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: Sr. no[number], Employee ID[string], Full Name[string], Job Title[string], Department[string], Business Unit[string], Gender[string], Ethnicity[string], Age[number], Hire Date[string], Annual Salary[number], Bonus %[number], Country[string], City[string], Exit Date[string]
+[ollama-agent] Spec: "Employee Distribution by Country" — 1 charts, 2 KPIs
+[ollama-agent] KPIs: Total Employees[count:Sr. no] | Country Distribution[sum:Bonus %]
+[ollama-agent] Charts: Donut Chart: Employee Count by Country[donut x:Country y:null]
+[PowerBI] "test.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: Sr. no[number], Employee ID[string], Full Name[string], Job Title[string], Department[string], Business Unit[string], Gender[string], Ethnicity[string], Age[number], Hire Date[string], Annual Salary[number], Bonus %[number], Country[string], City[string], Exit Date[string]
+[ollama-agent] Map injected: type=choropleth, loc=Country, val=null, agg=count
+[ollama-agent] Spec: "Employee Count by Country" — 1 charts, 2 KPIs
+[ollama-agent] KPIs: Total Employees in Each Country[count_distinct:Country] | Country Distribution[sum:Bonus %]
+[ollama-agent] Charts: Country Distribution Map[choropleth x:Country y:null]
+[PowerBI] "test.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: Sr. no[number], Employee ID[string], Full Name[string], Job Title[string], Department[string], Business Unit[string], Gender[string], Ethnicity[string], Age[number], Hire Date[string], Annual Salary[number], Bonus %[number], Country[string], City[string], Exit Date[string]
+[ollama-agent] Map injected: type=choropleth, loc=Country, val=Annual Salary, agg=sum
+[ollama-agent] Spec: "Dashboard Title" — 1 charts, 1 KPIs
+[ollama-agent] KPIs: Total Annual Salary by Country[sum:Annual Salary]
+[ollama-agent] Charts: Country Distribution of Total Annual Salary[choropleth x:Country y:Annual Salary]
+[PowerBI] "test.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: Sr. no[number], Employee ID[string], Full Name[string], Job Title[string], Department[string], Business Unit[string], Gender[string], Ethnicity[string], Age[number], Hire Date[string], Annual Salary[number], Bonus %[number], Country[string], City[string], Exit Date[string]
+[ollama-agent] Waterfall injected: cat=Ethnicity, val=Annual Salary, agg=sum
+[ollama-agent] Spec: "Waterfall Chart: Annual Salary Variance by Ethnicity" — 1 charts, 0 KPIs
+[ollama-agent] KPIs: 
+[ollama-agent] Charts: Waterfall Chart: Annual Salary Variance by Ethnicity[waterfall x:Ethnicity y:Annual Salary]
+[PowerBI] "test.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: Sr. no[number], Employee ID[string], Full Name[string], Job Title[string], Department[string], Business Unit[string], Gender[string], Ethnicity[string], Age[number], Hire Date[string], Annual Salary[number], Bonus %[number], Country[string], City[string], Exit Date[string]
+[ollama-agent] Waterfall injected: cat=Department, val=Annual Salary, agg=sum
+[ollama-agent] Spec: "Departmental Salary Trends" — 1 charts, 0 KPIs
+[ollama-agent] KPIs: 
+[ollama-agent] Charts: Waterfall: Annual Salary by Department[waterfall x:Department y:Annual Salary]
+[PowerBI] "test.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: Sr. no[number], Employee ID[string], Full Name[string], Job Title[string], Department[string], Business Unit[string], Gender[string], Ethnicity[string], Age[number], Hire Date[string], Annual Salary[number], Bonus %[number], Country[string], City[string], Exit Date[string]
+[ollama-agent] Waterfall injected: cat=Gender, val=Annual Salary, agg=sum
+[ollama-agent] Spec: "Salary Trends by Gender" — 1 charts, 0 KPIs
+[ollama-agent] KPIs: 
+[ollama-agent] Charts: Salary Changes Across Gender[waterfall x:Gender y:Annual Salary]
+[PowerBI] "test.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: Sr. no[number], Employee ID[string], Full Name[string], Job Title[string], Department[string], Business Unit[string], Gender[string], Ethnicity[string], Age[number], Hire Date[string], Annual Salary[number], Bonus %[number], Country[string], City[string], Exit Date[string]
+[ollama-agent] Combo injected: cat=Department, y=Sr. no, y2=Age, agg=sum, stacked=false, colorCol=null
+[ollama-agent] Spec: "Departmental Compensation Analysis" — 1 charts, 0 KPIs
+[ollama-agent] KPIs: 
+[ollama-agent] Charts: Department — Sr. no & Age (combo)[combo x:Department y:Sr. no]
+[PowerBI] "test.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: Sr. no[number], Employee ID[string], Full Name[string], Job Title[string], Department[string], Business Unit[string], Gender[string], Ethnicity[string], Age[number], Hire Date[string], Annual Salary[number], Bonus %[number], Country[string], City[string], Exit Date[string]
+[ollama-agent] Combo injected: cat=Department, y=Sr. no, y2=Age, agg=sum, stacked=true, colorCol=Business Unit
+[ollama-agent] Spec: "Annual Salary by Department" — 1 charts, 0 KPIs
+[ollama-agent] KPIs: 
+[ollama-agent] Charts: Department by Business Unit (stacked combo)[combo x:Department y:Sr. no]
+[PowerBI] "test.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: Sr. no[number], Employee ID[string], Full Name[string], Job Title[string], Department[string], Business Unit[string], Gender[string], Ethnicity[string], Age[number], Hire Date[string], Annual Salary[number], Bonus %[number], Country[string], City[string], Exit Date[string]
+[ollama-agent] Combo injected: cat=Department, y=Sr. no, y2=Age, agg=sum, stacked=true, colorCol=Business Unit
+[ollama-agent] Spec: "Department-wise Employee Salaries" — 1 charts, 0 KPIs
+[ollama-agent] KPIs: 
+[ollama-agent] Charts: Department by Business Unit (stacked combo)[combo x:Department y:Sr. no]
+[PowerBI] "test.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: Sr. no[number], Employee ID[string], Full Name[string], Job Title[string], Department[string], Business Unit[string], Gender[string], Ethnicity[string], Age[number], Hire Date[string], Annual Salary[number], Bonus %[number], Country[string], City[string], Exit Date[string]
+[ollama-agent] Combo injected: cat=Department, y=Sr. no, y2=Age, agg=sum, stacked=true, colorCol=Business Unit
+[ollama-agent] Spec: "Department-wise Salary and Bonus" — 1 charts, 0 KPIs
+[ollama-agent] KPIs: 
+[ollama-agent] Charts: Department by Business Unit (stacked combo)[combo x:Department y:Sr. no]
+[PowerBI] "test.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: Sr. no[number], Employee ID[string], Full Name[string], Job Title[string], Department[string], Business Unit[string], Gender[string], Ethnicity[string], Age[number], Hire Date[string], Annual Salary[number], Bonus %[number], Country[string], City[string], Exit Date[string]
+[PowerBI] "Test data 1.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: Sr. no[number], Employee ID[string], Full Name[string], Job Title[string], Department[string], Business Unit[string], Gender[string], Ethnicity[string], Age[number], Hire Date[date], Annual Salary[number], Bonus %[string], Country[string], City[string], Exit Date[date]
+[ollama-agent] Combo injected: cat=Department, y=Sr. no, y2=Age, agg=sum, stacked=true, colorCol=Business Unit
+[ollama-agent] Spec: "Annual Salary by Department" — 1 charts, 0 KPIs
+[ollama-agent] KPIs: 
+[ollama-agent] Charts: Department by Business Unit (stacked combo)[combo x:Department y:Sr. no]
+[PowerBI] "test.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: Sr. no[number], Employee ID[string], Full Name[string], Job Title[string], Department[string], Business Unit[string], Gender[string], Ethnicity[string], Age[number], Hire Date[string], Annual Salary[number], Bonus %[number], Country[string], City[string], Exit Date[string]
+[ollama-agent] Stacked area injected: cat=Country, color=Department, val=null, agg=count
+[ollama-agent] Spec: "Employee Country Distribution" — 1 charts, 0 KPIs
+[ollama-agent] KPIs: 
+[ollama-agent] Charts: Country by Department (stacked area)[area x:Country y:null]
+[ollama-agent] Combo injected: cat=Department, y=Sr. no, y2=Age, agg=sum, stacked=true, colorCol=Business Unit
+[ollama-agent] Spec: "Departmental Salary Comparison" — 1 charts, 0 KPIs
+[ollama-agent] KPIs: 
+[ollama-agent] Charts: Department by Business Unit (stacked combo)[combo x:Department y:Sr. no]
+[PowerBI] "Test data 1.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: Sr. no[number], Employee ID[string], Full Name[string], Job Title[string], Department[string], Business Unit[string], Gender[string], Ethnicity[string], Age[number], Hire Date[date], Annual Salary[number], Bonus %[string], Country[string], City[string], Exit Date[date]
+[ollama-agent] Stacked area injected: cat=Country, color=Department, val=null, agg=count
+[ollama-agent] Spec: "Employee Distribution by Country" — 1 charts, 0 KPIs
+[ollama-agent] KPIs: 
+[ollama-agent] Charts: Stacked Area Chart: Employee Count by Country[area x:Country y:null]
+[PowerBI] "Test data 1.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: Sr. no[number], Employee ID[string], Full Name[string], Job Title[string], Department[string], Business Unit[string], Gender[string], Ethnicity[string], Age[number], Hire Date[date], Annual Salary[number], Bonus %[string], Country[string], City[string], Exit Date[date]
+[ollama-agent] Spec: "Employee Count by Country" — 1 charts, 0 KPIs
+[ollama-agent] KPIs: 
+[ollama-agent] Charts: Country Distribution: Employee Count[bar x:Country y:null]
+[PowerBI] "Test data 1.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: Sr. no[number], Employee ID[string], Full Name[string], Job Title[string], Department[string], Business Unit[string], Gender[string], Ethnicity[string], Age[number], Hire Date[date], Annual Salary[number], Bonus %[string], Country[string], City[string], Exit Date[date]
+[ollama-agent] Spec: "Employee Distribution by Country" — 1 charts, 0 KPIs
+[ollama-agent] KPIs: 
+[ollama-agent] Charts: Employee Count by Country[bar x:Employee ID y:Country]
+[PowerBI] "Test data 1.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: Sr. no[number], Employee ID[string], Full Name[string], Job Title[string], Department[string], Business Unit[string], Gender[string], Ethnicity[string], Age[number], Hire Date[date], Annual Salary[number], Bonus %[string], Country[string], City[string], Exit Date[date]
+[PowerBI] "test.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: Sr. no[number], Employee ID[string], Full Name[string], Job Title[string], Department[string], Business Unit[string], Gender[string], Ethnicity[string], Age[number], Hire Date[string], Annual Salary[number], Bonus %[number], Country[string], City[string], Exit Date[string]
+[ollama-agent] Spec: "Employee Distribution by Country" — 1 charts, 0 KPIs
+[ollama-agent] KPIs: 
+[ollama-agent] Charts: Clustered Column Chart: Employee Count by Country[bar x:Employee ID y:Country]
+[ollama-agent] Spec: "Employee Distribution by Country" — 1 charts, 0 KPIs
+[ollama-agent] KPIs: 
+[ollama-agent] Charts: Country Distribution: Employee Count[bar x:Country y:null]
+[PowerBI] "test.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: Sr. no[number], Employee ID[string], Full Name[string], Job Title[string], Department[string], Business Unit[string], Gender[string], Ethnicity[string], Age[number], Hire Date[string], Annual Salary[number], Bonus %[number], Country[string], City[string], Exit Date[string]
+[ollama-agent] Spec: "Employee Count by Country" — 1 charts, 0 KPIs
+[ollama-agent] KPIs: 
+[ollama-agent] Charts: Stacked Column Chart: Employee Count by Country[bar x:Employee ID y:null]
+[PowerBI] "test.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: Sr. no[number], Employee ID[string], Full Name[string], Job Title[string], Department[string], Business Unit[string], Gender[string], Ethnicity[string], Age[number], Hire Date[string], Annual Salary[number], Bonus %[number], Country[string], City[string], Exit Date[string]
+[ollama-agent] Spec: "Employee Count by Country" — 1 charts, 0 KPIs
+[ollama-agent] KPIs: 
+[ollama-agent] Charts: Stacked Column Chart[bar x:Country y:null]

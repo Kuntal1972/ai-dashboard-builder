@@ -17,10 +17,11 @@ async function generatePbit(spec, csvData, columns, colTypes, fileName) {
   const zip = new JSZip();
 
   zip.file('[Content_Types].xml', buildContentTypes());
-  zip.file('Version',         '2.137.1500.0');
-  zip.file('SecurityBindings', Buffer.alloc(0));
-  zip.file('Metadata',        JSON.stringify(buildMetadata(reportId)));
-  zip.file('DataModelSchema', JSON.stringify(buildDataModelSchema(spec, tableName, columns, colTypes, csvData)));
+  zip.file('_rels/.rels',        buildRootRels());
+  zip.file('Version',            '2.137.1500.0');
+  zip.file('SecurityBindings',   Buffer.alloc(0));
+  zip.file('Metadata',           JSON.stringify(buildMetadata(reportId)));
+  zip.file('DataModelSchema',    JSON.stringify(buildDataModelSchema(spec, tableName, columns, colTypes, csvData)));
 
   // Mashup is a nested ZIP
   const mashupZip = new JSZip();
@@ -28,7 +29,8 @@ async function generatePbit(spec, csvData, columns, colTypes, fileName) {
   const mashupBytes = await mashupZip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
   zip.file('Mashup', mashupBytes);
 
-  zip.file('Report/Layout', JSON.stringify(buildReportLayout(spec, tableName)));
+  zip.file('Report/Layout',            JSON.stringify(buildReportLayout(spec, tableName)));
+  zip.file('Report/_rels/Layout.rels', buildLayoutRels());
 
   const buffer = await zip.generateAsync({
     type: 'nodebuffer',
@@ -46,8 +48,7 @@ async function generatePbit(spec, csvData, columns, colTypes, fileName) {
 function buildContentTypes() {
   return `<?xml version="1.0" encoding="utf-8"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
-  <Default Extension="json" ContentType="application/json" />
-  <Default Extension="xml" ContentType="application/xml" />
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />
   <Override PartName="/DataModelSchema" ContentType="application/json" />
   <Override PartName="/Report/Layout" ContentType="application/json" />
   <Override PartName="/Version" ContentType="application/octet-stream" />
@@ -55,6 +56,19 @@ function buildContentTypes() {
   <Override PartName="/SecurityBindings" ContentType="application/octet-stream" />
   <Override PartName="/Mashup" ContentType="application/octet-stream" />
 </Types>`;
+}
+
+function buildRootRels() {
+  return `<?xml version="1.0" encoding="utf-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="/Report/Layout" Id="rId1" />
+</Relationships>`;
+}
+
+function buildLayoutRels() {
+  return `<?xml version="1.0" encoding="utf-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+</Relationships>`;
 }
 
 /* ════════════════════════════════════════════
@@ -274,16 +288,22 @@ function buildReportLayout(spec, tableName) {
       // First chart in row, leave cx as-is
     }
 
+    // Support both PBI-builder style (measure_name/category_column) and
+    // Ollama-agent style (y_column/x_column) — fall back gracefully
+    const measureName    = chart.measure_name    || chart.y_column    || '';
+    const categoryColumn = chart.category_column || chart.x_column    || '';
+
     const pos = { x: cx, y: cy, z: 0, width: cw, height: CHART_H };
     containers.push(makeChartVisual(
       tableName,
-      chart.measure_name,
-      chart.category_column || '',
+      measureName,
+      categoryColumn,
       chart.type || 'bar',
       chart.title,
       pos,
       tabOrder++,
-      chart.top_n || null
+      chart.top_n || null,
+      chart          // pass full chart for type-specific handling
     ));
 
     if (wide) {
@@ -388,31 +408,78 @@ function makeCardVisual(tableName, measureName, title, position, tabOrder) {
 }
 
 /* ── Chart visual container ── */
-function makeChartVisual(tableName, measureName, categoryColumn, chartType, title, position, tabOrder, topN) {
+function makeChartVisual(tableName, measureName, categoryColumn, chartType, title, position, tabOrder, topN, chartObj) {
   const pbiTypeMap = {
-    bar:    'clusteredColumnChart',
-    line:   'lineChart',
-    area:   'areaChart',
-    pie:    'pieChart',
-    donut:  'donutChart',
-    scatter: 'scatterChart',
-    funnel: 'funnel'
+    bar:           'clusteredColumnChart',
+    column:        'clusteredColumnChart',
+    line:          'lineChart',
+    area:          'areaChart',
+    pie:           'pieChart',
+    donut:         'donutChart',
+    scatter:       'scatterChart',
+    funnel:        'funnel',
+    waterfall:     'waterfallChart',
+    treemap:       'treemap',
+    gauge:         'gauge',
+    choropleth:    'filledMap',
+    scattergeo:    'filledMap',
+    histogram:     'clusteredColumnChart',
+    stackedbar:    'stackedColumnChart',
+    stackedarea:   'areaChart',
+    combo:         'lineClusteredColumnComboChart',   // plain combo (line + clustered column)
+    matrix:        'tableEx',
+    multi_row_card:'tableEx',                         // render as table in pbit (preview uses custom HTML)
+    sankey:        'tableEx',                         // no native sankey in default PBI visuals → table
+    gantt:         'tableEx',                         // Gantt needs a custom visual → table fallback
+    bullet:        'clusteredBarChart'                // bullet → horizontal bar in PBI
   };
-  const pbiType   = pbiTypeMap[chartType] || 'clusteredColumnChart';
-  const measureRef = `${tableName}.${measureName || 'Measure'}`;
-  const catRef     = categoryColumn ? `${tableName}.${categoryColumn}` : `${tableName}.Category`;
+  // Stacked column combo → different Power BI type
+  const isStackedCombo = chartType === 'combo' && chartObj && (chartObj.stack_mode === 'stack' || chartObj.stack_mode === 'percent');
+  const pbiType = isStackedCombo ? 'lineStackedColumnComboChart' : (pbiTypeMap[chartType] || 'clusteredColumnChart');
+  const isMap     = pbiType === 'filledMap';
+  const isGauge   = pbiType === 'gauge';
+
+  const measureRef = measureName ? `${tableName}.${measureName}` : null;
+  const catRef     = categoryColumn ? `${tableName}.${categoryColumn}` : null;
   const safeTitle  = String(title || measureName || 'Chart').replace(/'/g, "\\'");
 
+  // Build projections based on chart type
   const projections = {};
-  if (['pie', 'donut'].includes(chartType)) {
-    projections.Category = [{ queryRef: catRef }];
-    projections.Y        = [{ queryRef: measureRef }];
+  if (isMap) {
+    // Filled map uses Location bucket for geographic column + Values for measure
+    if (catRef)     projections.Location = [{ queryRef: catRef }];
+    if (measureRef) projections.Values   = [{ queryRef: measureRef }];
+  } else if (isGauge) {
+    // Gauge uses Y for the value, with optional min/max/target
+    if (measureRef) projections.Y       = [{ queryRef: measureRef }];
+    // min/max/target are properties, not projections — handled via vcObjects below
+  } else if (chartType === 'multi_row_card') {
+    // Multi-row card → table visual: project all metric columns as Values
+    // x_column (category) is the row grouping; metric columns are the Values
+    if (catRef) projections.Values = [{ queryRef: catRef }];
+    if (chartObj && Array.isArray(chartObj.metrics)) {
+      chartObj.metrics.forEach(metric => {
+        if (metric.column) {
+          const mRef = `${tableName}.${metric.column}`;
+          if (!projections.Values) projections.Values = [];
+          if (!projections.Values.find(v => v.queryRef === mRef)) {
+            projections.Values.push({ queryRef: mRef });
+          }
+        }
+      });
+    } else if (measureRef) {
+      if (!projections.Values) projections.Values = [];
+      projections.Values.push({ queryRef: measureRef });
+    }
+  } else if (['pie', 'donut', 'treemap', 'funnel'].includes(chartType)) {
+    if (catRef)     projections.Category = [{ queryRef: catRef }];
+    if (measureRef) projections.Y        = [{ queryRef: measureRef }];
   } else {
-    projections.Category = [{ queryRef: catRef }];
-    projections.Y        = [{ queryRef: measureRef }];
+    if (catRef)     projections.Category = [{ queryRef: catRef }];
+    if (measureRef) projections.Y        = [{ queryRef: measureRef }];
   }
 
-  const fromClause = [{ Name: 't', Entity: tableName, Type: 0 }];
+  const fromClause   = [{ Name: 't', Entity: tableName, Type: 0 }];
   const selectClause = [];
 
   if (categoryColumn) {
@@ -421,21 +488,60 @@ function makeChartVisual(tableName, measureName, categoryColumn, chartType, titl
       Name: catRef
     });
   }
-  selectClause.push({
-    Measure: { Expression: { SourceRef: { Source: 't' } }, Property: measureName },
-    Name: measureRef
-  });
+  if (chartType === 'multi_row_card' && chartObj && Array.isArray(chartObj.metrics)) {
+    // For multi_row_card: add each metric column as a column in the select clause
+    const addedCols = new Set(categoryColumn ? [categoryColumn] : []);
+    chartObj.metrics.forEach(metric => {
+      if (metric.column && !addedCols.has(metric.column)) {
+        addedCols.add(metric.column);
+        const mRef = `${tableName}.${metric.column}`;
+        selectClause.push({
+          Column: { Expression: { SourceRef: { Source: 't' } }, Property: metric.column },
+          Name: mRef
+        });
+      }
+    });
+  } else if (measureName) {
+    selectClause.push({
+      Measure: { Expression: { SourceRef: { Source: 't' } }, Property: measureName },
+      Name: measureRef
+    });
+  }
 
   const protoQuery = {
     Version: 2,
     From: fromClause,
-    Select: selectClause,
-    OrderBy: [{
+    Select: selectClause
+  };
+  // Sorting only makes sense for ranked chart types (not multi_row_card or map or gauge)
+  if (!isMap && !isGauge && chartType !== 'multi_row_card' && measureName) {
+    protoQuery.OrderBy = [{
       Direction: 2,
       Expression: { Measure: { Expression: { SourceRef: { Source: 't' } }, Property: measureName } }
+    }];
+  }
+  if (topN) protoQuery.Top = { Count: topN };
+
+  // Build vcObjects (title + gauge-specific range)
+  const vcObjects = {
+    title: [{
+      properties: {
+        show: { expr: { Literal: { Value: 'true' } } },
+        text: { expr: { Literal: { Value: `'${safeTitle}'` } } }
+      }
     }]
   };
-  if (topN) protoQuery.Top = { Count: topN };
+
+  if (isGauge && chartObj) {
+    const gaugeProps = {};
+    const c = chartObj;
+    if (c.min_value    != null) gaugeProps.minValue    = { expr: { Literal: { Value: `${c.min_value}D`    } } };
+    if (c.max_value    != null) gaugeProps.maxValue    = { expr: { Literal: { Value: `${c.max_value}D`    } } };
+    if (c.target_value != null) gaugeProps.targetValue = { expr: { Literal: { Value: `${c.target_value}D` } } };
+    if (Object.keys(gaugeProps).length) {
+      vcObjects.gauge = [{ properties: gaugeProps }];
+    }
+  }
 
   const config = {
     name: `chart_${tabOrder}`,
@@ -447,33 +553,19 @@ function makeChartVisual(tableName, measureName, categoryColumn, chartType, titl
       visualType: pbiType,
       projections,
       prototypeQuery: protoQuery,
-      vcObjects: {
-        title: [{
-          properties: {
-            show: { expr: { Literal: { Value: 'true' } } },
-            text: { expr: { Literal: { Value: `'${safeTitle}'` } } }
-          }
-        }]
-      }
+      vcObjects
     }
   };
 
-  const queryObj = {
-    Version: 2,
-    From: fromClause,
-    Select: selectClause,
-    OrderBy: [{
-      Direction: 2,
-      Expression: { Measure: { Expression: { SourceRef: { Source: 't' } }, Property: measureName } }
-    }]
-  };
-  if (topN) queryObj.Top = { Count: topN };
+  const queryObj = { ...protoQuery };
 
   const dtSelect = [];
-  if (categoryColumn) {
+  if (categoryColumn && catRef) {
     dtSelect.push({ Restatement: categoryColumn, Name: catRef, Type: { Category: 'BasicText' } });
   }
-  dtSelect.push({ Restatement: title, Name: measureRef, Type: { Numeric: 4 } });
+  if (measureName && measureRef) {
+    dtSelect.push({ Restatement: title || measureName, Name: measureRef, Type: { Numeric: 4 } });
+  }
 
   return {
     x: position.x, y: position.y, z: position.z || 0,

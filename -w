@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Dashboard Builder</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <script src="js/plotly-2.27.0.min.js"></script>
+  <script src="js/xlsx.full.min.js"></script>
+  <script src="js/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+
+<!-- ══ Header ══════════════════════════════════════════════ -->
+<header>
+  <div class="logo">📊 AI <span>Dashboard Builder</span></div>
+  <div class="sep"></div>
+  <div class="mode-seg" id="mode-seg">
+    <button class="mseg-btn active" data-mode="api"     id="mbtn-api">🤖 Claude API Mode</button>
+    <button class="mseg-btn"        data-mode="powerbi" id="mbtn-powerbi">⚡ Power BI + Ollama Mode</button>
+  </div>
+  <div class="sep"></div>
+  <button id="btn-upload" class="hbtn accent">⬆ Upload File</button>
+  <button id="btn-clear-dash" class="hbtn" title="Clear current dashboard">🗑 Clear Dashboard</button>
+  <button id="btn-download-pbix" class="hbtn" title="Download interactive dashboard report (HTML — opens in browser)" disabled>⬇ Download Report</button>
+  <button id="btn-download-excel" class="hbtn excel" title="Download dashboard data as Excel spreadsheet" disabled>📥 Download Excel</button>
+  <button id="btn-debug" class="hbtn" title="Toggle column mapping inspector" onclick="toggleDebugMode()">🔍 Debug</button>
+  <button id="btn-prompt-guide" class="hbtn" title="How to write effective prompts">📖 Prompt Guide</button>
+  <button id="btn-generate-prompt" class="hbtn" title="Auto-generate a prompt from your dataset">✨ Generate Prompt</button>
+  <div class="spacer"></div>
+  <span id="dataset-pill" class="dataset-pill hidden"></span>
+  <span id="ai-conn-badge" class="ai-conn-badge"></span>
+  <button id="btn-settings" class="hbtn icon" title="Settings">⚙</button>
+</header>
+
+<!-- ══ Dashboard ════════════════════════════════════════════ -->
+<div id="dashboard" class="dashboard">
+
+  <!-- Prompt bar -->
+  <div class="prompt-bar">
+    <div class="prompt-input-wrap">
+      <textarea id="prompt-input"
+        placeholder="Describe your dashboard… e.g. &quot;Create a sales dashboard with bar charts for revenue by region, monthly trend line, pie chart for product mix, and KPI cards for total revenue, orders, and average order value&quot;"></textarea>
+      <div class="prompt-btn-col">
+        <button id="btn-build" class="build-btn">⚡ Build Dashboard</button>
+        <button id="btn-refine" class="refine-btn" disabled title="Build a dashboard first, then describe refinements">🔄 Refine</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Body: left panel + charts -->
+  <div class="dash-body">
+
+    <!-- Left panel: Data + Filters tabs -->
+    <aside class="left-panel" id="left-panel">
+      <div class="panel-tabs">
+        <button class="panel-tab active" data-tab="data">📋 Data</button>
+        <button class="panel-tab" data-tab="filters">🔍 Filters</button>
+        <button class="panel-tab" data-tab="log">💬 Log</button>
+        <button class="panel-tab" data-tab="charts">📈 Charts</button>
+      </div>
+
+      <!-- DATA TAB -->
+      <div class="data-tab" id="data-tab">
+
+        <!-- Multi-dataset bar (shown when 2+ files loaded) -->
+        <div id="multi-ds-bar" class="multi-ds-bar hidden">
+          <button id="btn-join-tables" class="join-tables-btn">⟷ Map &amp; Join Tables</button>
+          <span id="multi-ds-count" class="multi-ds-count"></span>
+        </div>
+
+        <!-- Single dataset view -->
+        <div id="single-ds-view">
+          <div class="ds-info-bar" id="ds-info-bar">
+            <div class="ds-name" id="ds-name">No dataset loaded</div>
+            <div class="ds-meta" id="ds-meta">Upload a file to begin</div>
+          </div>
+          <div class="col-list-wrap" id="col-list-wrap">
+            <div class="col-list-hdr">Columns</div>
+            <div id="col-chips"></div>
+          </div>
+          <div class="data-preview-hdr">
+            <span>Data Preview</span>
+            <span class="row-info" id="preview-row-info"></span>
+          </div>
+          <div class="data-preview-wrap">
+            <table class="mini-table" id="data-preview-table"></table>
+          </div>
+        </div>
+
+        <!-- Multi dataset view (accordion per file) -->
+        <div id="multi-ds-view" class="hidden"></div>
+
+      </div>
+
+      <!-- FILTERS TAB -->
+      <div class="filter-tab hidden" id="filter-tab">
+        <div class="filter-tab-hdr">
+          <span>Active Filters</span>
+          <button id="btn-clear-all" class="clear-all hidden">✕ Clear all</button>
+        </div>
+        <div class="filter-tab-inner" id="slicer-list"></div>
+      </div>
+
+      <!-- LOG TAB -->
+      <div class="log-tab hidden" id="log-tab">
+        <div class="log-tab-hdr">Conversation Log</div>
+        <div class="log-tab-inner" id="history-log"></div>
+      </div>
+
+      <!-- CHARTS TAB -->
+      <div class="charts-pick-tab hidden" id="charts-pick-tab">
+        <div class="charts-pick-hdr">Chart Types</div>
+
+        <!-- RAG CHART SEARCH -->
+        <div class="rag-search-section" id="rag-search-section">
+          <div class="rag-search-wrap">
+            <span class="rag-search-icon">🔍</span>
+            <input type="text" id="rag-search-input" class="rag-search-input"
+                   placeholder="Describe what you want to visualise…"
+                   oninput="ragSearchDebounced(this.value)"
+                   autocomplete="off" spellcheck="false" />
+            <button class="rag-search-clear" id="rag-search-clear" onclick="clearRagSearch()" title="Clear">✕</button>
+          </div>
+          <div class="rag-results" id="rag-results" hidden></div>
+        </div>
+
+        <div class="charts-pick-hint">
+          <span>Click to add to your prompt</span>
+          <div class="charts-pick-btns">
+            <button class="select-all-charts-btn" onclick="addAllChartsToPrompt()" title="Add smart prompts for all chart types">⊞ Select All Charts</button>
+            <button class="add-filters-btn" onclick="addFiltersToPrompt()" title="Scan dataset and add filter prompt">⧉ Add Filters</button>
+          </div>
+        </div>
+        <div class="charts-pick-grid">
+
+          <div class="ct-section ct-c1">Quick Add</div>
+
+          <button class="chart-type-card" onclick="addChartTypeToPrompt('bar chart')">
+            <svg class="ct-icon" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg">
+              <rect x="4"  y="8"  width="8" height="22" rx="1"/>
+              <rect x="17" y="4"  width="8" height="26" rx="1"/>
+              <rect x="30" y="14" width="8" height="16" rx="1"/>
+            </svg>
+            <span>Bar Chart</span>
+          </button>
+
+          <button class="chart-type-card" onclick="addChartTypeToPrompt('horizontal bar chart')">
+            <svg class="ct-icon" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg">
+              <rect x="4" y="4"  width="30" height="6" rx="1"/>
+              <rect x="4" y="13" width="20" height="6" rx="1"/>
+              <rect x="4" y="22" width="26" height="6" rx="1"/>
+            </svg>
+            <span>Horizontal Bar</span>
+          </button>
+
+          <div class="ct-section ct-c1">Column Charts</div>
+
+          <button class="chart-type-card" onclick="addChartTypeToPrompt('clustered column chart')">
+            <svg class="ct-icon" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2"  y="14" width="5" height="16" rx="1"/>
+              <rect x="8"  y="8"  width="5" height="22" rx="1" opacity="0.4"/>
+              <rect x="16" y="10" width="5" height="20" rx="1"/>
+              <rect x="22" y="18" width="5" height="12" rx="1" opacity="0.4"/>
+              <rect x="30" y="4"  width="5" height="26" rx="1"/>
+              <rect x="36" y="12" width="5" height="18" rx="1" opacity="0.4"/>
+            </svg>
+            <span>Clustered Column</span>
+          </button>
+
+          <button class="chart-type-card" onclick="addChartTypeToPrompt('stacked column chart')">
+            <svg class="ct-icon" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg">
+              <rect x="4"  y="18" width="8" height="12" rx="1"/>
+              <rect x="4"  y="10" width="8" height="8"  rx="1" opacity="0.45"/>
+              <rect x="17" y="12" width="8" height="18" rx="1"/>
+              <rect x="17" y="5"  width="8" height="7"  rx="1" opacity="0.45"/>
+              <rect x="30" y="16" width="8" height="14" rx="1"/>
+              <rect x="30" y="9"  width="8" height="7"  rx="1" opacity="0.45"/>
+            </svg>
+            <span>Stacked Column</span>
+          </button>
+
+          <button class="chart-type-card" onclick="addChartTypeToPrompt('100% stacked column chart')">
+            <svg class="ct-icon" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg">
+              <rect x="4"  y="2" width="8" height="28" rx="1" opacity="0.28"/>
+              <rect x="4"  y="14" width="8" height="16" rx="1"/>
+              <rect x="17" y="2" width="8" height="28" rx="1" opacity="0.28"/>
+              <rect x="17" y="12" width="8" height="18" rx="1"/>
+              <rect x="30" y="2" width="8" height="28" rx="1" opacity="0.28"/>
+              <rect x="30" y="18" width="8" height="12" rx="1"/>
+            </svg>
+            <span>100% Stacked Col</span>
+          </button>
+
+          <div class="ct-section ct-c2">Bar Charts</div>
+
+          <button class="chart-type-card" onclick="addChartTypeToPrompt('clustered bar chart')">
+            <svg class="ct-icon" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg">
+              <rect x="4" y="1"  width="22" height="4" rx="1"/>
+              <rect x="4" y="6"  width="14" height="4" rx="1" opacity="0.4"/>
+              <rect x="4" y="13" width="30" height="4" rx="1"/>
+              <rect x="4" y="18" width="18" height="4" rx="1" opacity="0.4"/>
+              <rect x="4" y="25" width="16" height="4" rx="1"/>
+              <rect x="4" y="30" width="24" height="2" rx="1" opacity="0.4"/>
+            </svg>
+            <span>Clustered Bar</span>
+          </button>
+
+          <button class="chart-type-card" onclick="addChartTypeToPrompt('stacked bar chart')">
+            <svg class="ct-icon" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg">
+              <rect x="4"  y="4"  width="20" height="6" rx="1"/>
+              <rect x="24" y="4"  width="12" height="6" rx="1" opacity="0.45"/>
+              <rect x="4"  y="14" width="28" height="6" rx="1"/>
+              <rect x="32" y="14" width="8"  height="6" rx="1" opacity="0.45"/>
+              <rect x="4"  y="24" width="16" height="6" rx="1"/>
+              <rect x="20" y="24" width="18" height="6" rx="1" opacity="0.45"/>
+            </svg>
+            <span>Stacked Bar</span>
+          </button>
+
+          <button class="chart-type-card" onclick="addChartTypeToPrompt('100% stacked bar chart')">
+            <svg class="ct-icon" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg">
+              <rect x="4" y="4"  width="36" height="6" rx="1" opacity="0.28"/>
+              <rect x="4" y="4"  width="22" height="6" rx="1"/>
+              <rect x="4" y="14" width="36" height="6" rx="1" opacity="0.28"/>
+              <rect x="4" y="14" width="28" height="6" rx="1"/>
+              <rect x="4" y="24" width="36" height="6" rx="1" opacity="0.28"/>
+              <rect x="4" y="24" width="16" height="6" rx="1"/>
+            </svg>
+            <span>100% Stacked Bar</span>
+          </button>
+
+          <div class="ct-section ct-c3">Line &amp; Area</div>
+
+          <button class="chart-type-card" onclick="addChartTypeToPrompt('line chart')">
+            <svg class="ct-icon" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg">
+              <polyline points="3,26 13,16 23,20 33,8 41,12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+              <circle cx="3"  cy="26" r="2.5"/>
+              <circle cx="13" cy="16" r="2.5"/>
+              <circle cx="23" cy="20" r="2.5"/>
+              <circle cx="33" cy="8"  r="2.5"/>
+              <circle cx="41" cy="12" r="2.5"/>
+            </svg>
+            <span>Line Chart</span>
+          </button>
+
+          <button class="chart-type-card" onclick="addChartTypeToPrompt('area chart')">
+            <svg class="ct-icon" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3,26 L13,16 L23,20 L33,8 L41,12 L41,30 L3,30 Z" fill="currentColor" opacity="0.3"/>
+              <polyline points="3,26 13,16 23,20 33,8 41,12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+            </svg>
+            <span>Area Chart</span>
+          </button>
+
+          <button class="chart-type-card" onclick="addChartTypeToPrompt('stacked area chart')">
+            <svg class="ct-icon" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3,28 L13,22 L23,24 L33,18 L41,20 L41,30 L3,30 Z" fill="currentColor" opacity="0.35"/>
+              <path d="M3,20 L13,12 L23,16 L33,6 L41,10 L41,20 L33,18 L23,24 L13,22 L3,28 Z" fill="currentColor" opacity="0.55"/>
+              <polyline points="3,20 13,12 23,16 33,6 41,10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            </svg>
+            <span>Stacked Area</span>
+          </button>
+
+          <button class="chart-type-card" onclick="addChartTypeToPrompt('line and clustered column combo chart')">
+            <svg class="ct-icon" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg">
+              <rect x="3"  y="18" width="6" height="12" rx="1" opacity="0.4"/>
+              <rect x="13" y="10" width="6" height="20" rx="1" opacity="0.4"/>
+              <rect x="23" y="14" width="6" height="16" rx="1" opacity="0.4"/>
+              <rect x="33" y="8"  width="6" height="22" rx="1" opacity="0.4"/>
+              <polyline points="6,14 16,6 26,10 36,4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+              <circle cx="6"  cy="14" r="2.5"/>
+              <circle cx="16" cy="6"  r="2.5"/>
+              <circle cx="26" cy="10" r="2.5"/>
+              <circle cx="36" cy="4"  r="2.5"/>
+            </svg>
+            <span>Line &amp; Column</span>
+          </button>
+
+          <button class="chart-type-card" onclick="addChartTypeToPrompt('line and stacked column combo chart')">
+            <svg class="ct-icon" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg">
+              <rect x="3"  y="20" width="6" height="10" rx="1" opacity="0.55"/>
+              <rect x="3"  y="14" width="6" height="6"  rx="1" opacity="0.3"/>
+              <rect x="13" y="14" width="6" height="16" rx="1" opacity="0.55"/>
+              <rect x="13" y="8"  width="6" height="6"  rx="1" opacity="0.3"/>
+              <rect x="23" y="18" width="6" height="12" rx="1" opacity="0.55"/>
+              <rect x="23" y="12" width="6" height="6"  rx="1" opacity="0.3"/>
+              <rect x="33" y="12" width="6" height="18" rx="1" opacity="0.55"/>
+              <rect x="33" y="6"  width="6" height="6"  rx="1" opacity="0.3"/>
+              <polyline points="6,12 16,5 26,9 36,3" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+              <circle cx="6"  cy="12" r="2"/>
+              <circle cx="16" cy="5"  r="2"/>
+              <circle cx="26" cy="9"  r="2"/>
+              <circle cx="36" cy="3"  r="2"/>
+            </svg>
+            <span>Line &amp; Stacked Col</span>
+          </button>
+
+          <div class="ct-section ct-c4">Other Charts</div>
+
+          <button class="chart-type-card" onclick="addChartTypeToPrompt('waterfall chart')">
+            <svg class="ct-icon" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2"  y="10" width="7" height="20" rx="1"/>
+              <rect x="11" y="4"  width="7" height="6"  rx="1" opacity="0.7"/>
+              <rect x="20" y="14" width="7" height="5"  rx="1" opacity="0.35"/>
+              <rect x="29" y="6"  width="7" height="8"  rx="1" opacity="0.7"/>
+              <rect x="37" y="2"  width="7" height="28" rx="1"/>
+              <line x1="9"  y1="10" x2="11" y2="10" stroke="currentColor" stroke-width="0.8" opacity="0.45"/>
+              <line x1="18" y1="4"  x2="20" y2="4"  stroke="currentColor" stroke-width="0.8" opacity="0.45"/>
+              <line x1="27" y1="14" x2="29" y2="14" stroke="currentColor" stroke-width="0.8" opacity="0.45"/>
+            </svg>
+            <span>Waterfall</span>
+          </button>
+
+          <button class="chart-type-card" onclick="addChartTypeToPrompt('funnel chart')">
+            <svg class="ct-icon" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2"  y="2"  width="40" height="6" rx="1"/>
+              <rect x="6"  y="10" width="32" height="6" rx="1" opacity="0.8"/>
+              <rect x="10" y="18" width="24" height="6" rx="1" opacity="0.6"/>
+              <rect x="14" y="26" width="16" height="5" rx="1" opacity="0.4"/>
+            </svg>
+            <span>Funnel</span>
+          </button>
+
+          <button class="chart-type-card" onclick="addChartTypeToPrompt('scatter chart')">
+            <svg class="ct-icon" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="8"  cy="24" r="3"/>
+              <circle cx="15" cy="14" r="3"/>
+              <circle cx="22" cy="20" r="3"/>
+              <circle cx="28" cy="8"  r="3"/>
+              <circle cx="36" cy="18" r="3"/>
+              <circle cx="12" cy="27" r="3"/>
+              <circle cx="32" cy="25" r="3"/>
+              <circle cx="40" cy="10" r="3"/>
+            </svg>
+            <span>Scatter Chart</span>
+          </button>
+
+          <button class="chart-type-card" onclick="addChartTypeToPrompt('bubble chart with variable size bubbles')">
+            <svg class="ct-icon" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="10" cy="22" r="6"   opacity="0.7"/>
+              <circle cx="29" cy="10" r="9"   opacity="0.45"/>
+              <circle cx="20" cy="20" r="3.5" opacity="0.8"/>
+              <circle cx="37" cy="23" r="5"   opacity="0.6"/>
+            </svg>
+            <span>Bubble Chart</span>
+          </button>
+
+          <button class="chart-type-card" onclick="addChartTypeToPrompt('pie chart')">
+            <svg class="ct-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+              <path d="M16,16 L16,3 A13,13 0 0,1 27.3,22 Z" fill="currentColor" opacity="1"/>
+              <path d="M16,16 L27.3,22 A13,13 0 0,1 5,23 Z" fill="currentColor" opacity="0.6"/>
+              <path d="M16,16 L5,23 A13,13 0 1,1 16,3 Z" fill="currentColor" opacity="0.3"/>
+            </svg>
+            <span>Pie Chart</span>
+          </button>
+
+          <button class="chart-type-card" onclick="addChartTypeToPrompt('donut chart')">
+            <svg class="ct-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+              <path d="M16,3 A13,13 0 0,1 27.3,22 L22.6,19.5 A8,8 0 0,0 16,8 Z" fill="currentColor" opacity="1"/>
+              <path d="M27.3,22 A13,13 0 0,1 5,23 L9.8,20.5 A8,8 0 0,0 22.6,19.5 Z" fill="currentColor" opacity="0.6"/>
+              <path d="M5,23 A13,13 0 1,1 16,3 L16,8 A8,8 0 1,0 9.8,20.5 Z" fill="currentColor" opacity="0.3"/>
+            </svg>
+            <span>Donut Chart</span>
+          </button>
+
+          <button class="chart-type-card" onclick="addChartTypeToPrompt('treemap chart')">
+            <svg class="ct-icon" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2"  y="2"  width="20" height="28" rx="1"/>
+              <rect x="24" y="2"  width="18" height="16" rx="1" opacity="0.7"/>
+              <rect x="24" y="20" width="10" height="10" rx="1" opacity="0.5"/>
+              <rect x="36" y="20" width="6"  height="5"  rx="1" opacity="0.35"/>
+              <rect x="36" y="27" width="6"  height="3"  rx="1" opacity="0.2"/>
+            </svg>
+            <span>Treemap</span>
+          </button>
+
+          <div class="ct-section ct-c5">Maps &amp; Gauge</div>
+
+          <button class="chart-type-card" onclick="addChartTypeToPrompt('map visual with data bubbles')">
+            <svg class="ct-icon" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3,14 Q8,6 16,8 Q22,6 30,9 Q38,7 41,14 Q42,20 36,24 Q28,30 18,28 Q10,30 5,24 Q2,20 3,14 Z" fill="currentColor" opacity="0.13" stroke="currentColor" stroke-width="0.8"/>
+              <circle cx="14" cy="16" r="4.5" opacity="0.7"/>
+              <circle cx="28" cy="14" r="6.5" opacity="0.45"/>
+              <circle cx="22" cy="22" r="3"   opacity="0.6"/>
+            </svg>
+            <span>Map</span>
+          </button>
+
+          <button class="chart-type-card" onclick="addChartTypeToPrompt('filled map choropleth')">
+            <svg class="ct-icon" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3,14 Q8,6 16,8 L22,8 L22,22 L14,24 Q8,24 4,20 Z" opacity="0.75"/>
+              <path d="M22,8 L32,6 Q39,9 41,16 Q40,22 35,26 L22,22 Z" opacity="0.4"/>
+              <path d="M14,24 L22,22 L22,30 Q16,30 12,28 Z" opacity="0.55"/>
+              <path d="M22,22 L35,26 L28,30 L22,30 Z" opacity="0.25"/>
+            </svg>
+            <span>Filled Map</span>
+          </button>
+
+
+          <button class="chart-type-card" onclick="addChartTypeToPrompt('gauge chart')">
+            <svg class="ct-icon" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4,28 A18,18 0 0,1 40,28" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" opacity="0.2"/>
+              <path d="M4,28 A18,18 0 0,1 28,11" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+              <line x1="22" y1="28" x2="28" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+              <circle cx="22" cy="28" r="3"/>
+            </svg>
+            <span>Gauge</span>
+          </button>
+
+          <div class="ct-section ct-c6">Cards &amp; Tables</div>
+
+          <button class="chart-type-card" onclick="addChartTypeToPrompt('multi-row card visual')">
+            <svg class="ct-icon" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg">
+              <rect x="4" y="2"  width="36" height="8" rx="2" fill="currentColor" opacity="0.12" stroke="currentColor" stroke-width="0.6"/>
+              <rect x="8" y="5"  width="14" height="2" rx="1" opacity="0.45"/>
+              <rect x="26" y="4" width="10" height="4" rx="1" opacity="0.8"/>
+              <rect x="4" y="12" width="36" height="8" rx="2" fill="currentColor" opacity="0.12" stroke="currentColor" stroke-width="0.6"/>
+              <rect x="8" y="15" width="14" height="2" rx="1" opacity="0.45"/>
+              <rect x="26" y="14" width="10" height="4" rx="1" opacity="0.8"/>
+              <rect x="4" y="22" width="36" height="8" rx="2" fill="currentColor" opacity="0.12" stroke="currentColor" stroke-width="0.6"/>
+              <rect x="8" y="25" width="14" height="2" rx="1" opacity="0.45"/>
+              <rect x="26" y="24" width="10" height="4" rx="1" opacity="0.8"/>
+            </svg>
+            <span>Multi-row Card</span>
+          </button>
+
+          <button class="chart-type-card" onclick="addChartTypeToPrompt('KPI visual with trend indicator')">
+            <svg class="ct-icon" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg">
+              <rect x="3"  y="4" width="12" height="24" rx="2" fill="currentColor" opacity="0.14"/>
+              <rect x="17" y="4" width="12" height="24" rx="2" fill="currentColor" opacity="0.14"/>
+              <rect x="30" y="4" width="12" height="24" rx="2" fill="currentColor" opacity="0.14"/>
+              <rect x="6"  y="8" width="6"  height="2"  rx="1" opacity="0.45"/>
+              <rect x="5"  y="13" width="8" height="5"  rx="1" opacity="0.85"/>
+              <rect x="20" y="8" width="6"  height="2"  rx="1" opacity="0.45"/>
+              <rect x="19" y="13" width="8" height="5"  rx="1" opacity="0.85"/>
+              <rect x="33" y="8" width="6"  height="2"  rx="1" opacity="0.45"/>
+              <rect x="32" y="13" width="8" height="5"  rx="1" opacity="0.85"/>
+            </svg>
+            <span>KPI</span>
+          </button>
+
+          <button class="chart-type-card" onclick="addChartTypeToPrompt('data table')">
+            <svg class="ct-icon" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2" y="2"  width="40" height="8" rx="1" opacity="0.8"/>
+              <rect x="2" y="12" width="40" height="6" rx="1" opacity="0.35"/>
+              <rect x="2" y="20" width="40" height="6" rx="1" opacity="0.35"/>
+              <rect x="2" y="28" width="40" height="3" rx="1" opacity="0.35"/>
+              <line x1="16" y1="2" x2="16" y2="31" stroke="currentColor" stroke-width="0.6" opacity="0.35"/>
+              <line x1="30" y1="2" x2="30" y2="31" stroke="currentColor" stroke-width="0.6" opacity="0.35"/>
+            </svg>
+            <span>Table</span>
+          </button>
+
+          <button class="chart-type-card" onclick="addChartTypeToPrompt('matrix table with row and column groupings')">
+            <svg class="ct-icon" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2"  y="2"  width="40" height="7" rx="1" opacity="0.7"/>
+              <rect x="2"  y="10" width="11" height="5" rx="0" opacity="0.4"/>
+              <rect x="2"  y="17" width="11" height="5" rx="0" opacity="0.4"/>
+              <rect x="2"  y="24" width="11" height="7" rx="0" opacity="0.4"/>
+              <rect x="14" y="10" width="9"  height="5" rx="0" opacity="0.15"/>
+              <rect x="25" y="10" width="9"  height="5" rx="0" opacity="0.3"/>
+              <rect x="36" y="10" width="6"  height="5" rx="0" opacity="0.1"/>
+              <rect x="14" y="17" width="9"  height="5" rx="0" opacity="0.3"/>
+              <rect x="25" y="17" width="9"  height="5" rx="0" opacity="0.15"/>
+              <rect x="36" y="17" width="6"  height="5" rx="0" opacity="0.2"/>
+              <rect x="14" y="24" width="9"  height="7" rx="0" opacity="0.2"/>
+              <rect x="25" y="24" width="9"  height="7" rx="0" opacity="0.35"/>
+              <rect x="36" y="24" width="6"  height="7" rx="0" opacity="0.1"/>
+            </svg>
+            <span>Matrix</span>
+          </button>
+
+          <div class="ct-section ct-special">✦ Special Charts</div>
+
+          <button class="chart-type-card chart-type-card--special" onclick="addChartTypeToPrompt('sankey chart')">
+            <svg class="ct-icon" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2" y="3"  width="5" height="9"  rx="1"/>
+              <rect x="2" y="20" width="5" height="9"  rx="1" opacity="0.65"/>
+              <path d="M7,3 C22,3 22,9 37,9 L37,18 C22,18 22,12 7,12 Z" opacity="0.75"/>
+              <path d="M7,20 C22,20 22,18 37,18 L37,29 C22,29 22,26 7,29 Z" opacity="0.45"/>
+              <rect x="37" y="9"  width="5" height="20" rx="1" opacity="0.8"/>
+            </svg>
+            <span>Sankey Chart</span>
+          </button>
+
+          <button class="chart-type-card chart-type-card--special" onclick="addChartTypeToPrompt('gantt chart')">
+            <svg class="ct-icon" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2"  y="4"  width="3" height="6" rx="1" opacity="0.35"/>
+              <rect x="7"  y="4"  width="20" height="6" rx="1"/>
+              <rect x="2"  y="13" width="3" height="6" rx="1" opacity="0.35"/>
+              <rect x="15" y="13" width="18" height="6" rx="1" opacity="0.8"/>
+              <rect x="2"  y="22" width="3" height="6" rx="1" opacity="0.35"/>
+              <rect x="22" y="22" width="18" height="6" rx="1" opacity="0.6"/>
+            </svg>
+            <span>Gantt Chart</span>
+          </button>
+
+          <button class="chart-type-card chart-type-card--special" onclick="addChartTypeToPrompt('bullet chart')">
+            <svg class="ct-icon" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2" y="4"  width="40" height="9"  rx="1" opacity="0.12"/>
+              <rect x="2" y="4"  width="26" height="9"  rx="1" opacity="0.35"/>
+              <rect x="2" y="6"  width="17" height="5"  rx="1"/>
+              <line x1="30" y1="3"  x2="30" y2="14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+              <rect x="2" y="18" width="40" height="9"  rx="1" opacity="0.12"/>
+              <rect x="2" y="18" width="32" height="9"  rx="1" opacity="0.35"/>
+              <rect x="2" y="20" width="22" height="5"  rx="1"/>
+              <line x1="36" y1="17" x2="36" y2="28" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+            </svg>
+            <span>Bullet Chart</span>
+          </button>
+
+          <button class="chart-type-card chart-type-card--special" onclick="addChartTypeToPrompt('heatmap chart')">
+            <svg class="ct-icon" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2"  y="2"  width="12" height="8" rx="1" opacity="0.95"/>
+              <rect x="16" y="2"  width="12" height="8" rx="1" opacity="0.35"/>
+              <rect x="30" y="2"  width="12" height="8" rx="1" opacity="0.65"/>
+              <rect x="2"  y="12" width="12" height="8" rx="1" opacity="0.2"/>
+              <rect x="16" y="12" width="12" height="8" rx="1" opacity="1"/>
+              <rect x="30" y="12" width="12" height="8" rx="1" opacity="0.5"/>
+              <rect x="2"  y="22" width="12" height="8" rx="1" opacity="0.55"/>
+              <rect x="16" y="22" width="12" height="8" rx="1" opacity="0.8"/>
+              <rect x="30" y="22" width="12" height="8" rx="1" opacity="0.15"/>
+            </svg>
+            <span>Heatmap</span>
+          </button>
+
+          <button class="chart-type-card chart-type-card--special" onclick="addChartTypeToPrompt('sunburst chart')">
+            <svg class="ct-icon" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="22" cy="16" r="4"/>
+              <path d="M22,12 A4,4 0 0,1 26,16 L22,16 Z" opacity="0.0"/>
+              <path d="M22,2 A14,14 0 0,1 36,16 L28,16 A6,6 0 0,0 22,10 Z" opacity="0.85"/>
+              <path d="M36,16 A14,14 0 0,1 22,30 L22,24 A6,6 0 0,0 28,16 Z" opacity="0.55"/>
+              <path d="M22,30 A14,14 0 0,1 8,16  L16,16 A6,6 0 0,0 22,24 Z" opacity="0.35"/>
+              <path d="M8,16  A14,14 0 0,1 22,2  L22,10 A6,6 0 0,0 16,16 Z" opacity="0.65"/>
+            </svg>
+            <span>Sunburst</span>
+          </button>
+
+          <button class="chart-type-card chart-type-card--special" onclick="addChartTypeToPrompt('hierarchy tree chart')">
+            <svg class="ct-icon" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg">
+              <rect x="16" y="1" width="12" height="6" rx="1"/>
+              <line x1="22" y1="7"  x2="22" y2="12" stroke="currentColor" stroke-width="1.5"/>
+              <line x1="8"  y1="12" x2="36" y2="12" stroke="currentColor" stroke-width="1.5"/>
+              <line x1="8"  y1="12" x2="8"  y2="16" stroke="currentColor" stroke-width="1.5"/>
+              <line x1="22" y1="12" x2="22" y2="16" stroke="currentColor" stroke-width="1.5"/>
+              <line x1="36" y1="12" x2="36" y2="16" stroke="currentColor" stroke-width="1.5"/>
+              <rect x="2"  y="16" width="12" height="6" rx="1" opacity="0.85"/>
+              <rect x="16" y="16" width="12" height="6" rx="1" opacity="0.85"/>
+              <rect x="30" y="16" width="12" height="6" rx="1" opacity="0.85"/>
+              <line x1="5"  y1="22" x2="5"  y2="26" stroke="currentColor" stroke-width="1.2"/>
+              <line x1="11" y1="22" x2="11" y2="26" stroke="currentColor" stroke-width="1.2"/>
+              <line x1="3"  y1="26" x2="13" y2="26" stroke="currentColor" stroke-width="1.2"/>
+              <circle cx="5"  cy="28" r="2" opacity="0.55"/>
+              <circle cx="11" cy="28" r="2" opacity="0.55"/>
+              <line x1="33" y1="22" x2="33" y2="26" stroke="currentColor" stroke-width="1.2"/>
+              <line x1="39" y1="22" x2="39" y2="26" stroke="currentColor" stroke-width="1.2"/>
+              <line x1="31" y1="26" x2="41" y2="26" stroke="currentColor" stroke-width="1.2"/>
+              <circle cx="33" cy="28" r="2" opacity="0.55"/>
+              <circle cx="39" cy="28" r="2" opacity="0.55"/>
+            </svg>
+            <span>Hierarchy Tree</span>
+          </button>
+
+        </div>
+      </div>
+    </aside>
+
+    <!-- Charts area -->
+    <div class="charts-area">
+      <div class="filter-strip" id="filter-strip">
+        <span class="filter-strip-label">Instructions (Scroll down to get the complete set of instructions):</span>
+        <div id="active-chips"></div>
+        <span id="row-count" class="row-count"></span>
+      </div>
+      <div class="ready-hint" id="ready-hint">
+        <div class="ready-icon">
+          <svg viewBox="0 0 520 300" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:580px;display:block;margin:0 auto;border-radius:14px;box-shadow:0 8px 48px rgba(124,58,237,0.30)">
+            <defs>
+              <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#0f0f23"/>
+                <stop offset="100%" stop-color="#16162e"/>
+              </linearGradient>
+              <linearGradient id="areaGrad1" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#7c3aed" stop-opacity="0.45"/>
+                <stop offset="100%" stop-color="#7c3aed" stop-opacity="0.02"/>
+              </linearGradient>
+              <linearGradient id="areaGrad2" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.35"/>
+                <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.02"/>
+              </linearGradient>
+              <linearGradient id="bar1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#9d5cff"/><stop offset="100%" stop-color="#7c3aed"/></linearGradient>
+              <linearGradient id="bar2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#22d3ee"/><stop offset="100%" stop-color="#06b6d4"/></linearGradient>
+              <linearGradient id="bar3" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#34d399"/><stop offset="100%" stop-color="#10b981"/></linearGradient>
+              <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+                <feGaussianBlur stdDeviation="3" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+
+            <!-- Background -->
+            <rect width="520" height="300" rx="14" fill="url(#bgGrad)"/>
+
+            <!-- Title bar -->
+            <rect x="0" y="0" width="520" height="38" rx="14" fill="#1a1a2e"/>
+            <rect x="0" y="24" width="520" height="14" fill="#1a1a2e"/>
+            <circle cx="20" cy="19" r="5" fill="#ef4444" opacity="0.85"/>
+            <circle cx="35" cy="19" r="5" fill="#f59e0b" opacity="0.85"/>
+            <circle cx="50" cy="19" r="5" fill="#10b981" opacity="0.85"/>
+            <text x="260" y="24" text-anchor="middle" fill="#e2e8f0" font-size="10.5" font-family="Segoe UI,system-ui,sans-serif" font-weight="600" opacity="0.95">Sales Analytics Dashboard</text>
+
+            <!-- ── KPI Cards ── -->
+            <!-- Card 1 -->
+            <rect x="12" y="48" width="153" height="56" rx="7" fill="#1a1a2e"/>
+            <rect x="12" y="48" width="4"   height="56" rx="2" fill="#7c3aed"/>
+            <text x="26" y="66" fill="#94a3b8" font-size="8"  font-family="Segoe UI,sans-serif">Total Revenue</text>
+            <text x="26" y="84" fill="#e2e8f0" font-size="16" font-family="Segoe UI,sans-serif" font-weight="bold">$2.47M</text>
+            <text x="26" y="97" fill="#10b981" font-size="7.5" font-family="Segoe UI,sans-serif">↑ 12.4% vs last month</text>
+            <!-- Card 2 -->
+            <rect x="172" y="48" width="153" height="56" rx="7" fill="#1a1a2e"/>
+            <rect x="172" y="48" width="4"   height="56" rx="2" fill="#06b6d4"/>
+            <text x="186" y="66" fill="#94a3b8" font-size="8"  font-family="Segoe UI,sans-serif">Total Orders</text>
+            <text x="186" y="84" fill="#e2e8f0" font-size="16" font-family="Segoe UI,sans-serif" font-weight="bold">18,432</text>
+            <text x="186" y="97" fill="#10b981" font-size="7.5" font-family="Segoe UI,sans-serif">↑ 8.1% vs last month</text>
+            <!-- Card 3 -->
+            <rect x="332" y="48" width="176" height="56" rx="7" fill="#1a1a2e"/>
+            <rect x="332" y="48" width="4"   height="56" rx="2" fill="#10b981"/>
+            <text x="346" y="66" fill="#94a3b8" font-size="8"  font-family="Segoe UI,sans-serif">Avg Order Value</text>
+            <text x="346" y="84" fill="#e2e8f0" font-size="16" font-family="Segoe UI,sans-serif" font-weight="bold">$134.10</text>
+            <text x="346" y="97" fill="#ef4444" font-size="7.5" font-family="Segoe UI,sans-serif">↓ 2.3% vs last month</text>
+
+            <!-- ── Bar Chart ── -->
+            <rect x="12" y="114" width="243" height="178" rx="7" fill="#1a1a2e"/>
+            <text x="22" y="131" fill="#e2e8f0" font-size="9" font-family="Segoe UI,sans-serif" font-weight="700">Revenue by Region</text>
+            <!-- grid -->
+            <line x1="22" y1="162" x2="247" y2="162" stroke="#2e2e50" stroke-width="0.5"/>
+            <line x1="22" y1="187" x2="247" y2="187" stroke="#2e2e50" stroke-width="0.5"/>
+            <line x1="22" y1="212" x2="247" y2="212" stroke="#2e2e50" stroke-width="0.5"/>
+            <line x1="22" y1="237" x2="247" y2="237" stroke="#2e2e50" stroke-width="0.5"/>
+            <!-- bars -->
+            <rect x="30"  y="194" width="30" height="61" rx="3" fill="url(#bar1)" filter="url(#glow)"/>
+            <rect x="72"  y="174" width="30" height="81" rx="3" fill="url(#bar2)" filter="url(#glow)"/>
+            <rect x="114" y="157" width="30" height="98" rx="3" fill="url(#bar1)" filter="url(#glow)"/>
+            <rect x="156" y="180" width="30" height="75" rx="3" fill="url(#bar3)" filter="url(#glow)"/>
+            <rect x="198" y="147" width="30" height="108" rx="3" fill="url(#bar2)" filter="url(#glow)"/>
+            <!-- x-axis -->
+            <line x1="22" y1="255" x2="247" y2="255" stroke="#2e2e50" stroke-width="1"/>
+            <!-- labels -->
+            <text x="45"  y="266" text-anchor="middle" fill="#94a3b8" font-size="7" font-family="Segoe UI,sans-serif">North</text>
+            <text x="87"  y="266" text-anchor="middle" fill="#94a3b8" font-size="7" font-family="Segoe UI,sans-serif">South</text>
+            <text x="129" y="266" text-anchor="middle" fill="#94a3b8" font-size="7" font-family="Segoe UI,sans-serif">East</text>
+            <text x="171" y="266" text-anchor="middle" fill="#94a3b8" font-size="7" font-family="Segoe UI,sans-serif">West</text>
+            <text x="213" y="266" text-anchor="middle" fill="#94a3b8" font-size="7" font-family="Segoe UI,sans-serif">Central</text>
+
+            <!-- ── Area / Line Chart ── -->
+            <rect x="263" y="114" width="245" height="104" rx="7" fill="#1a1a2e"/>
+            <text x="273" y="131" fill="#e2e8f0" font-size="9" font-family="Segoe UI,sans-serif" font-weight="700">Monthly Sales Trend</text>
+            <!-- area fill 1 (purple) -->
+            <path d="M273,197 L303,186 L333,189 L363,172 L393,167 L423,157 L453,151 L480,154 L480,210 L273,210 Z" fill="url(#areaGrad1)"/>
+            <!-- area fill 2 (cyan) -->
+            <path d="M273,207 L303,200 L333,202 L363,188 L393,183 L423,175 L453,168 L480,172 L480,210 L273,210 Z" fill="url(#areaGrad2)"/>
+            <!-- line 1 (purple) -->
+            <polyline points="273,197 303,186 333,189 363,172 393,167 423,157 453,151 480,154" fill="none" stroke="#7c3aed" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+            <!-- line 2 (cyan) -->
+            <polyline points="273,207 303,200 333,202 363,188 393,183 423,175 453,168 480,172" fill="none" stroke="#06b6d4" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.8"/>
+            <!-- dots line 1 -->
+            <circle cx="273" cy="197" r="2.5" fill="#7c3aed"/><circle cx="303" cy="186" r="2.5" fill="#7c3aed"/>
+            <circle cx="333" cy="189" r="2.5" fill="#7c3aed"/><circle cx="363" cy="172" r="2.5" fill="#7c3aed"/>
+            <circle cx="393" cy="167" r="2.5" fill="#7c3aed"/><circle cx="423" cy="157" r="2.5" fill="#7c3aed"/>
+            <circle cx="453" cy="151" r="2.5" fill="#7c3aed"/><circle cx="480" cy="154" r="2.5" fill="#7c3aed"/>
+            <!-- month labels -->
+            <text x="273" y="216" fill="#94a3b8" font-size="6.5" font-family="Segoe UI,sans-serif">Jan</text>
+            <text x="300" y="216" fill="#94a3b8" font-size="6.5" font-family="Segoe UI,sans-serif">Feb</text>
+            <text x="328" y="216" fill="#94a3b8" font-size="6.5" font-family="Segoe UI,sans-serif">Mar</text>
+            <text x="356" y="216" fill="#94a3b8" font-size="6.5" font-family="Segoe UI,sans-serif">Apr</text>
+            <text x="384" y="216" fill="#94a3b8" font-size="6.5" font-family="Segoe UI,sans-serif">May</text>
+            <text x="412" y="216" fill="#94a3b8" font-size="6.5" font-family="Segoe UI,sans-serif">Jun</text>
+            <text x="440" y="216" fill="#94a3b8" font-size="6.5" font-family="Segoe UI,sans-serif">Jul</text>
+            <text x="468" y="216" fill="#94a3b8" font-size="6.5" font-family="Segoe UI,sans-serif">Aug</text>
+
+            <!-- ── Donut Chart ── -->
+            <rect x="263" y="224" width="245" height="68" rx="7" fill="#1a1a2e"/>
+            <text x="273" y="240" fill="#e2e8f0" font-size="9" font-family="Segoe UI,sans-serif" font-weight="700">Product Mix</text>
+            <!-- donut segments  r=19 → circumference≈119.4 -->
+            <circle cx="340" cy="256" r="19" fill="none" stroke="#7c3aed" stroke-width="10" stroke-dasharray="47.8 71.6" stroke-dashoffset="0"   filter="url(#glow)"/>
+            <circle cx="340" cy="256" r="19" fill="none" stroke="#06b6d4" stroke-width="10" stroke-dasharray="35.8 83.6" stroke-dashoffset="-47.8" filter="url(#glow)"/>
+            <circle cx="340" cy="256" r="19" fill="none" stroke="#10b981" stroke-width="10" stroke-dasharray="23.9 95.5" stroke-dashoffset="-83.6" filter="url(#glow)"/>
+            <circle cx="340" cy="256" r="19" fill="none" stroke="#f59e0b" stroke-width="10" stroke-dasharray="11.9 107.5" stroke-dashoffset="-107.5"/>
+            <!-- centre -->
+            <circle cx="340" cy="256" r="11" fill="#1a1a2e"/>
+            <!-- legend -->
+            <rect x="378" y="233" width="8" height="8" rx="1.5" fill="#7c3aed"/>
+            <text x="390" y="240" fill="#94a3b8" font-size="7" font-family="Segoe UI,sans-serif">Electronics 40%</text>
+            <rect x="378" y="247" width="8" height="8" rx="1.5" fill="#06b6d4"/>
+            <text x="390" y="254" fill="#94a3b8" font-size="7" font-family="Segoe UI,sans-serif">Clothing 30%</text>
+            <rect x="378" y="261" width="8" height="8" rx="1.5" fill="#10b981"/>
+            <text x="390" y="268" fill="#94a3b8" font-size="7" font-family="Segoe UI,sans-serif">Food &amp; Drink 20%</text>
+            <rect x="378" y="275" width="8" height="8" rx="1.5" fill="#f59e0b"/>
+            <text x="390" y="282" fill="#94a3b8" font-size="7" font-family="Segoe UI,sans-serif">Other 10%</text>
+          </svg>
+        </div>
+        <div class="ready-title">AI Dashboard Builder</div>
+        <div class="ready-msg">Upload data, describe your dashboard requirements, and click <strong>Build Dashboard</strong>.<br>AI will generate interactive visualisations tailored to your data.</div>
+        <div class="ready-steps">
+          <div class="ready-step"><span class="step-n">1</span>Select Dashboard building mode: Claude API Mode (this mode needs a paid Claude API Key) or Power BI + Ollama Mode (this mode will be free)</div>
+          <div class="ready-step"><span class="step-n">2</span>In case of Claude API Mode, click on the Gear icon on the top right side corner and set your Claude API Key and save</div>
+          <div class="ready-step"><span class="step-n">3</span>In case of Power BI + Ollama Mode, click on the Gear icon on the top right side corner and set Server URL as https://ai-dashboard-builder.onrender.com/ and save</div>
+          <div class="ready-step"><span class="step-n">4</span>Upload a CSV / data file or Multiple CSV / data files and build relationship between the data files and create one single data file</div>
+          <div class="ready-step"><span class="step-n">5</span>Describe your requirements through Prompt on the Prompt Panel or Click Chart type to select Chart specific Prompt<br>on the Prompt Panel or Select All Charts button to create Prompt for all types of Charts in the Prompt Panel</div>
+          <div class="ready-step"><span class="step-n">6</span>Click Build Dashboard button to Generate Dashboard based on the given Prompt and download the .pbit file</div>
+          <div class="ready-step"><span class="step-n">7</span>Refine with follow-up prompts</div>
+        </div>
+      </div>
+      <div id="charts-grid" class="charts-grid"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Status bar -->
+<div class="statusbar">
+  <span id="sb" class="sb-dot">Ready — upload a file to begin</span>
+  <div class="spacer"></div>
+  <span class="sb-r" id="ai-mode-label">Powered by Claude AI</span>
+  <span style="opacity:.4;font-size:10px;margin-left:8px">v1</span>
+</div>
+<div id="toasts"></div>
+
+<!-- Loading overlay -->
+<div class="loading-overlay hidden" id="loading-overlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-msg" id="loading-msg">Processing…</div>
+  <div class="loading-sub" id="loading-sub"></div>
+</div>
+
+<!-- ══ Excel Guard Modal ════════════════════════════════════ -->
+<div class="overlay hidden" id="modal-excel-guard">
+  <div class="modal" style="width:400px;text-align:center">
+    <div class="mhdr"><span>⬇ Download Excel</span><button class="mclose" onclick="closeExcelModal()">✕</button></div>
+    <div class="mbody" style="padding:28px 24px 20px">
+      <div style="font-size:48px;margin-bottom:12px">📊</div>
+      <p id="excel-modal-msg" style="font-size:15px;font-weight:600;color:var(--fg);line-height:1.5;margin:0 0 20px">Build the Dashboard first then click</p>
+      <button class="pbtn" onclick="closeExcelModal()" style="min-width:120px">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Upload Modal ═════════════════════════════════════════ -->
+<div class="overlay hidden" id="modal-upload">
+  <div class="modal" style="width:540px">
+    <div class="mhdr"><span>⬆ Upload Data File(s)</span><button class="mclose" data-m="modal-upload">✕</button></div>
+    <div class="mbody">
+      <div class="uzone" id="uzone">
+        <div style="font-size:40px;margin-bottom:10px">📁</div>
+        <div>Drag &amp; drop or <label for="file-in" class="flink">browse files</label></div>
+        <div class="usub">CSV · Tab-delimited · Pipe-delimited · JSON · Multiple files supported</div>
+        <input type="file" id="file-in" accept=".csv,.tsv,.txt,.json,.psv,.dat" hidden multiple />
+      </div>
+      <div class="form-row">
+        <label class="flabel">Delimiter</label>
+        <div class="radio-grp">
+          <label><input type="radio" name="delim" value="auto" checked /> Auto-detect</label>
+          <label><input type="radio" name="delim" value="," /> Comma</label>
+          <label><input type="radio" name="delim" value="\t" /> Tab</label>
+          <label><input type="radio" name="delim" value="|" /> Pipe</label>
+          <label><input type="radio" name="delim" value="custom" /> Custom: <input id="cdelim" class="tiny-input" maxlength="3" placeholder=";" /></label>
+        </div>
+      </div>
+      <div class="chk-row">
+        <label><input type="checkbox" id="chk-hdr" checked /> First row header</label>
+        <label><input type="checkbox" id="chk-dyn" checked /> Auto-convert numbers</label>
+        <label><input type="checkbox" id="chk-skip" checked /> Skip empty rows</label>
+      </div>
+      <div id="uprev" class="hidden">
+        <div id="uprev-info" class="prev-info"></div>
+        <div id="uprev-table" class="prev-scroll"></div>
+      </div>
+    </div>
+    <div class="mftr">
+      <span id="ustatus" class="mstatus"></span>
+      <div class="spacer"></div>
+      <button class="sbtn" data-m="modal-upload">Cancel</button>
+      <button class="pbtn" id="btn-import" disabled>Import Dataset</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Settings Modal ══════════════════════════════════════ -->
+<div class="overlay hidden" id="modal-settings">
+  <div class="modal" style="width:460px">
+    <div class="mhdr"><span>⚙ Settings</span><button class="mclose" data-m="modal-settings">✕</button></div>
+    <div class="mbody">
+      <div class="form-row" id="settings-api-row">
+        <label class="flabel">🤖 Claude API Key <span id="ai-status-badge" style="font-weight:400;font-size:11px"></span></label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="password" id="s-apikey" class="tinput" placeholder="sk-ant-api03-…" style="flex:1" />
+          <button class="sbtn" id="btn-test-key" style="white-space:nowrap;height:34px">Test Key</button>
+        </div>
+        <div id="api-test-result" style="font-size:12px;margin-top:4px;min-height:16px"></div>
+        <div class="hint">Get your key at console.anthropic.com · Stored locally in your browser only</div>
+      </div>
+      <div class="form-row" id="settings-mcp-row">
+        <label class="flabel">🔌 Server URL <span id="mcp-status-badge" style="font-weight:400;font-size:11px"></span></label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" id="s-mcp-url" class="tinput" placeholder="http://localhost:3001" style="flex:1" />
+          <button class="sbtn" id="btn-test-mcp" style="white-space:nowrap;height:34px">Test</button>
+        </div>
+        <div id="mcp-test-result" style="font-size:12px;margin-top:4px;min-height:16px"></div>
+        <div class="hint">
+          When hosted on <strong>Render.com</strong>, enter your Render URL here (e.g. <code>https://ai-dashboard-builder.onrender.com</code>).<br>
+          The server uses <strong>Groq cloud LLM</strong> automatically — no Ollama or local setup needed for anyone.
+        </div>
+      </div>
+      <div class="form-row" id="settings-model-row">
+        <label class="flabel">Claude Model</label>
+        <select id="s-model" class="tinput">
+          <option value="claude-sonnet-4-6">Claude Sonnet 4.6 (recommended)</option>
+          <option value="claude-opus-4-7">Claude Opus 4.7 (most capable)</option>
+          <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (fastest)</option>
+          <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label class="flabel">Max chart categories</label>
+        <input type="number" id="s-cats" class="tinput" value="20" min="5" max="100" />
+      </div>
+    </div>
+    <div class="mftr">
+      <div class="spacer"></div>
+      <button class="sbtn" data-m="modal-settings">Cancel</button>
+      <button class="pbtn" id="btn-save-s">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Prompt Guide Modal ════════════════════════════════════ -->
+<div class="overlay hidden" id="modal-prompt-guide">
+  <div class="modal" style="width:640px;max-height:88vh;display:flex;flex-direction:column">
+    <div class="mhdr"><span>📖 Prompt Writing Guide</span><button class="mclose" data-m="modal-prompt-guide">✕</button></div>
+    <div class="mbody" style="overflow-y:auto;flex:1;padding:20px 24px">
+
+      <!-- Intro -->
+      <p style="color:var(--mut);font-size:13px;margin:0 0 18px">Write clear, specific prompts to get the best dashboards. The more detail you give, the better the result.</p>
+
+      <!-- General Instructions -->
+      <div class="pg-section">
+        <div class="pg-sec-title">🧭 General Instructions</div>
+        <ul class="pg-list">
+          <li>Start with a high-level description: <em>"Create a sales dashboard…"</em></li>
+          <li>Name the exact columns from your dataset (column names are shown in the left panel)</li>
+          <li>Specify aggregations: <strong>sum</strong>, <strong>average</strong>, <strong>count</strong>, <strong>max</strong>, <strong>min</strong></li>
+          <li>List all the charts and KPIs you want — AI builds exactly what you describe</li>
+          <li>Use commas to separate multiple chart requests in a single prompt</li>
+        </ul>
+        <div class="pg-example">
+          <div class="pg-ex-label">Example</div>
+          <code>Create a sales performance dashboard with KPI cards for total revenue and order count, a bar chart for revenue by region, and a line chart for monthly sales trend.</code>
+        </div>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="pg-section">
+        <div class="pg-sec-title">📌 KPI Cards</div>
+        <p class="pg-desc">KPI cards show a single aggregated number. Specify the <strong>column</strong> and the <strong>aggregation</strong>.</p>
+        <div class="pg-template">
+          <span class="pg-tag">Pattern</span>
+          <code>KPI card for [aggregation] of [column name]</code>
+        </div>
+        <ul class="pg-list">
+          <li><code>KPI card for total Revenue</code></li>
+          <li><code>KPI card for average Order Value</code></li>
+          <li><code>KPI card for count of Orders</code></li>
+          <li><code>KPI card for max Profit Margin</code></li>
+        </ul>
+        <div class="pg-tip">💡 Tip: Group multiple KPIs together — <em>"KPI cards for total Revenue, count of Orders, and average Discount"</em></div>
+      </div>
+
+      <!-- Charts -->
+      <div class="pg-section">
+        <div class="pg-sec-title">📊 Chart Requests</div>
+        <p class="pg-desc">Name the chart type, the axis columns, and the aggregation.</p>
+        <div class="pg-template">
+          <span class="pg-tag">Pattern</span>
+          <code>[chart type] of [aggregation of Y-column] by [X-column]</code>
+        </div>
+        <div class="pg-chart-grid">
+          <div class="pg-chart-item"><span class="pg-badge">Bar</span><code>bar chart for total Sales by Region</code></div>
+          <div class="pg-chart-item"><span class="pg-badge">Line</span><code>line chart for monthly Revenue trend by Month</code></div>
+          <div class="pg-chart-item"><span class="pg-badge">Area</span><code>area chart for cumulative Revenue over Time</code></div>
+          <div class="pg-chart-item"><span class="pg-badge">Pie</span><code>pie chart for Revenue share by Category</code></div>
+          <div class="pg-chart-item"><span class="pg-badge">Donut</span><code>donut chart for order mix by Product Type</code></div>
+          <div class="pg-chart-item"><span class="pg-badge">Scatter</span><code>scatter plot of Revenue vs Profit by Customer</code></div>
+          <div class="pg-chart-item"><span class="pg-badge">H-Bar</span><code>horizontal bar chart for top 10 Products by Sales</code></div>
+          <div class="pg-chart-item"><span class="pg-badge">Table</span><code>data table showing Region, Sales, and Orders</code></div>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="pg-section">
+        <div class="pg-sec-title">🔍 Filter &amp; Slicer Requests</div>
+        <p class="pg-desc">Filters appear in the left panel and let you drill down interactively.</p>
+        <div class="pg-template">
+          <span class="pg-tag">Pattern</span>
+          <code>add a filter/slicer for [column name]</code>
+        </div>
+        <ul class="pg-list">
+          <li><code>add a filter for Region</code></li>
+          <li><code>add slicers for Category and Year</code></li>
+          <li><code>include date range filter for Order Date</code></li>
+        </ul>
+        <div class="pg-tip">💡 Tip: Filters work best on categorical columns (text) and date columns. Avoid filtering on high-cardinality numeric columns.</div>
+      </div>
+
+      <!-- Full Example -->
+      <div class="pg-section">
+        <div class="pg-sec-title">✨ Full Example Prompt</div>
+        <div class="pg-example pg-example-full">
+          <div class="pg-ex-label">Copy &amp; adapt this</div>
+          <code>Create a sales dashboard with:
+– KPI cards for total Revenue, count of Orders, average Order Value, and max Discount
+– Bar chart for total Revenue by Region
+– Area chart for monthly Revenue trend by Month
+– Donut chart for Revenue share by Product Category
+– Horizontal bar chart for top 10 Customers by Revenue
+– Data table showing Region, Total Sales, Orders, and Avg Value
+– Filters for Region, Category, and Year</code>
+        </div>
+      </div>
+
+      <!-- Refine tip -->
+      <div class="pg-section" style="margin-bottom:4px">
+        <div class="pg-sec-title">🔄 Using Refine</div>
+        <p class="pg-desc">After building, use the <strong>Refine</strong> button to make targeted changes without rebuilding everything:</p>
+        <ul class="pg-list">
+          <li><em>"Change the bar chart to a horizontal bar chart"</em></li>
+          <li><em>"Add a KPI card for total Profit"</em></li>
+          <li><em>"Remove the scatter plot and add a treemap for sales by sub-category"</em></li>
+          <li><em>"Make the trend chart an area chart"</em></li>
+        </ul>
+      </div>
+
+    </div>
+    <div class="mftr">
+      <div class="spacer"></div>
+      <button class="pbtn" data-m="modal-prompt-guide">Got it</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Join Modal ═══════════════════════════════════════════ -->
+<div class="overlay hidden" id="modal-join">
+  <div class="modal jm-modal">
+    <div class="mhdr"><span>⟷ Visual Join Builder</span><button class="mclose" data-m="modal-join" onclick="_jmUnbindEvents()">✕</button></div>
+    <div class="mbody jm-body" id="jm-body"></div>
+    <div class="mftr">
+      <div class="spacer"></div>
+      <button class="sbtn" data-m="modal-join" onclick="_jmUnbindEvents()">Cancel</button>
+      <button class="pbtn" onclick="runJoin()">Execute Join →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Column Selector Modal ════════════════════════════════ -->
+<div class="overlay hidden" id="modal-col-select">
+  <div class="modal cs-modal">
+    <div class="mhdr">
+      <span>☑ Select Columns for Dashboard</span>
+      <button class="mclose" data-m="modal-col-select">✕</button>
+    </div>
+    <div class="mbody cs-mbody">
+      <div class="cs-row-info">
+        <strong id="cs-row-count"></strong>
+        <span id="cs-sel-count" class="cs-sel-info"></span>
+      </div>
+      <div class="cs-shuttle">
+        <!-- Left: available columns -->
+        <div class="cs-side">
+          <div class="cs-side-hdr">Available <span class="cs-count-badge" id="cs-avail-count"></span></div>
+          <div class="cs-list" id="cs-avail-list" onclick="csListClick(event,'avail')"></div>
+        </div>
+
+        <!-- Middle: arrow buttons -->
+        <div class="cs-arrows">
+          <button class="cs-arrow-btn" title="Move all to selected" onclick="csMoveAll('right')">&#xBB;</button>
+          <button class="cs-arrow-btn" title="Move selected to selected" onclick="csMoveSel('right')">&#x203A;</button>
+          <button class="cs-arrow-btn" title="Move selected back" onclick="csMoveSel('left')">&#x2039;</button>
+          <button class="cs-arrow-btn" title="Move all back" onclick="csMoveAll('left')">&#xAB;</button>
+        </div>
+
+        <!-- Right: chosen columns -->
+        <div class="cs-side">
+          <div class="cs-side-hdr">Selected <span class="cs-count-badge cs-count-sel" id="cs-chosen-count"></span></div>
+          <div class="cs-list" id="cs-chosen-list" onclick="csListClick(event,'chosen')"></div>
+        </div>
+      </div>
+    </div>
+    <div class="mftr">
+      <div class="spacer"></div>
+      <button class="sbtn" id="btn-back-to-join">← Back to Join</button>
+      <button class="pbtn" onclick="applyColumnSelection()">Apply &amp; Build Dataset →</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/state.js?v=2"></script>
+<script src="js/ui-helpers.js?v=3"></script>
+<script src="js/file-parser.js?v=2"></script>
+<script src="js/data-processor.js?v=3"></script>
+<script src="js/claude-api.js?v=19"></script>
+<script src="js/ollama-client.js?v=2"></script>
+<script src="js/chart-renderer.js?v=30"></script>
+<script src="js/prompt-generator.js?v=2"></script>
+<script src="js/data-joiner.js?v=2"></script>
+<script src="js/auto-dashboard.js?v=15"></script>
+<script src="js/dashboard.js?v=37"></script>
+<script src="js/pbix-exporter.js?v=3"></script>
+<script src="js/excel-exporter.js?v=7"></script>
+<script src="js/app.js?v=2"></script>
+
+<!-- ══ RAG Chart Search ═══════════════════════════════════ -->
+<script>
+(function () {
+  'use strict';
+
+  let _ragTimer    = null;
+  let _lastQuery   = '';
+
+  /* Debounced entry point called by oninput */
+  window.ragSearchDebounced = function (val) {
+    clearTimeout(_ragTimer);
+    const clearBtn = document.getElementById('rag-search-clear');
+    if (clearBtn) clearBtn.style.display = val ? '' : 'none';
+
+    if (!val.trim()) {
+      const res = document.getElementById('rag-results');
+      if (res) { res.innerHTML = ''; res.hidden = true; }
+      _lastQuery = '';
+      return;
+    }
+    _ragTimer = setTimeout(function () { ragSearch(val.trim()); }, 320);
+  };
+
+  /* Perform the search */
+  window.ragSearch = async function (query) {
+    if (query === _lastQuery) return;
+    _lastQuery = query;
+
+    const resultsEl = document.getElementById('rag-results');
+    if (!resultsEl) return;
+    resultsEl.innerHTML = '<div class="rag-loading">Searching…</div>';
+    resultsEl.hidden = false;
+
+    try {
+      const resp = await fetch('/api/rag/search', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ prompt: query, topK: 6 })
+      });
+
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const data = await resp.json();
+
+      if (!data.results || data.results.length === 0) {
+        resultsEl.innerHTML = '<div class="rag-empty">No matches found</div>';
+        return;
+      }
+
+      /* Build result cards */
+      const top = data.results[0].score;
+      const html = [
+        '<div class="rag-section-label">Best matches</div>',
+        ...data.results.map(function (item) {
+          /* Escape single-quotes in promptKey for the onclick */
+          const key  = (item.promptKey || '').replace(/'/g, "\\'");
+          const pct  = top > 0 ? Math.round((item.score / top) * 100) : Math.round(item.score * 100);
+          const icon = item.icon || '📊';
+          const name = item.name || key;
+          return (
+            '<button class="rag-result-card" onclick="addChartTypeToPrompt(\'' + key + '\')" title="Add \'' + name + '\' to prompt">' +
+              '<span class="rag-result-icon">' + icon + '</span>' +
+              '<span class="rag-result-name">' + name + '</span>' +
+              '<span class="rag-result-score">' + pct + '%</span>' +
+            '</button>'
+          );
+        })
+      ].join('');
+
+      resultsEl.innerHTML = html;
+    } catch (e) {
+      resultsEl.innerHTML = '<div class="rag-empty">Search unavailable</div>';
+    }
+  };
+
+  /* Clear the search box */
+  window.clearRagSearch = function () {
+    const input    = document.getElementById('rag-search-input');
+    const resultsEl = document.getElementById('rag-results');
+    const clearBtn = document.getElementById('rag-search-clear');
+    if (input)    { input.value = ''; input.focus(); }
+    if (resultsEl){ resultsEl.innerHTML = ''; resultsEl.hidden = true; }
+    if (clearBtn) clearBtn.style.display = 'none';
+    _lastQuery = '';
+  };
+}());
+</script>
+</body>
+</html>

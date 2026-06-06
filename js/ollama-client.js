@@ -20,7 +20,9 @@ Return ONLY valid JSON, no explanation, no markdown:
 }
 
 For "type" use exactly one of: bar, line, area, pie, donut, scatter, funnel
-Create exactly as many kpis and charts as the user requests. Use the user's exact wording for titles.`;
+Create exactly as many kpis and charts as the user requests. Use the user's exact wording for titles.
+When the user requests a KPI "with a comparison against X" or "with a secondary indicator for Y", create SEPARATE KPI cards for each metric (primary, comparison metric, and secondary metric).
+Example: "Average Annual Salary with comparison against median salary and secondary indicator for Total Headcount" → create 3 KPI cards: "Average Annual Salary", "Median Annual Salary", "Total Headcount".`;
 
 /* Build the same column profile the server would have sent to Ollama */
 function _buildColumnProfile(columns, colTypes, csvData) {

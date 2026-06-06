@@ -1,0 +1,81 @@
+
+=== AI Dashboard Builder ===
+   App:  http://localhost:3001
+   LLM:  Local Ollama — run: ollama serve
+   Tip:  set GROQ_API_KEY for cloud LLM (free at console.groq.com)
+============================
+
+[PowerBI] "orders.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: OrderID[string], Date[date], CustomerID[string], Product[string], Quantity[number], UnitPrice[number], ShippingAddress[string], PaymentMethod[string], OrderStatus[string], TrackingNumber[string], ItemsInCart[number], CouponCode[string], ReferralSource[string], TotalPrice[number]
+[PowerBI] "Online-Store-Orders - Sales Dashboard.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: OrderID[string], Date[date], CustomerID[string], Product[string], Quantity[number], UnitPrice[number], ShippingAddress[string], PaymentMethod[string], OrderStatus[string], TrackingNumber[string], ItemsInCart[number], CouponCode[string], ReferralSource[string], TotalPrice[number]
+[ollama-agent] Combo injected: cat=PaymentMethod, y=UnitPrice, y2=TotalPrice, agg=sum, stacked=true, colorCol=OrderStatus
+[ollama-agent] Spec: "Sales Dashboard" — 1 charts, 0 KPIs
+[ollama-agent] KPIs: 
+[ollama-agent] Charts: PaymentMethod by OrderStatus (stacked combo)[combo x:PaymentMethod y:UnitPrice]
+[ollama-agent] Spec: "Order Status and Payment Method Analysis" — 1 charts, 0 KPIs
+[ollama-agent] KPIs: 
+[ollama-agent] Charts: Stacked Column Chart: UnitPrice by OrderStatus and PaymentMethod[bar x:PaymentMethod y:UnitPrice]
+[PowerBI] "Online-Store-Orders - Sales Dashboard.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: OrderID[string], Date[date], CustomerID[string], Product[string], Quantity[number], UnitPrice[number], ShippingAddress[string], PaymentMethod[string], OrderStatus[string], TrackingNumber[string], ItemsInCart[number], CouponCode[string], ReferralSource[string], TotalPrice[number]
+[ollama-agent] Combo injected: cat=PaymentMethod, y=UnitPrice, y2=TotalPrice, agg=sum, stacked=true, colorCol=OrderStatus
+[ollama-agent] Spec: "Order Summary Dashboard" — 1 charts, 0 KPIs
+[ollama-agent] KPIs: 
+[ollama-agent] Charts: PaymentMethod by OrderStatus (stacked combo)[combo x:PaymentMethod y:UnitPrice]
+[PowerBI] "Online-Store-Orders - Sales Dashboard.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: OrderID[string], Date[date], CustomerID[string], Product[string], Quantity[number], UnitPrice[number], ShippingAddress[string], PaymentMethod[string], OrderStatus[string], TrackingNumber[string], ItemsInCart[number], CouponCode[string], ReferralSource[string], TotalPrice[number]
+[ollama-agent] Spec: "Order Summary Dashboard" — 1 charts, 2 KPIs
+[ollama-agent] KPIs: Total Revenue[sum:TotalPrice] | Average Order Value[mean:TotalPrice]
+[ollama-agent] Charts: UnitPrice vs TotalPrice by PaymentMethod[bar x:PaymentMethod y:UnitPrice]
+[PowerBI] "Online-Store-Orders - Sales Dashboard.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: OrderID[string], Date[date], CustomerID[string], Product[string], Quantity[number], UnitPrice[number], ShippingAddress[string], PaymentMethod[string], OrderStatus[string], TrackingNumber[string], ItemsInCart[number], CouponCode[string], ReferralSource[string], TotalPrice[number]
+[ollama-agent] Spec: "Order Summary Dashboard" — 1 charts, 2 KPIs
+[ollama-agent] KPIs: Total Revenue[sum:TotalPrice] | Unit Price by Payment Method[sum:UnitPrice]
+[ollama-agent] Charts: Unit Price by Payment Method[bar x:PaymentMethod y:UnitPrice]
+[PowerBI] "Online-Store-Orders - Sales Dashboard.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: OrderID[string], Date[date], CustomerID[string], Product[string], Quantity[number], UnitPrice[number], ShippingAddress[string], PaymentMethod[string], OrderStatus[string], TrackingNumber[string], ItemsInCart[number], CouponCode[string], ReferralSource[string], TotalPrice[number]
+[ollama-agent] Spec: "Order Summary Dashboard" — 1 charts, 2 KPIs
+[ollama-agent] KPIs: Total Revenue[sum:TotalPrice] | Average Order Value[mean:TotalPrice]
+[ollama-agent] Charts: UnitPrice vs TotalPrice by PaymentMethod[bar x:PaymentMethod y:UnitPrice]
+[PowerBI] "Online-Store-Orders - Sales Dashboard.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: OrderID[string], Date[date], CustomerID[string], Product[string], Quantity[number], UnitPrice[number], ShippingAddress[string], PaymentMethod[string], OrderStatus[string], TrackingNumber[string], ItemsInCart[number], CouponCode[string], ReferralSource[string], TotalPrice[number]
+[ollama-agent] Spec: "Order Summary Dashboard" — 1 charts, 2 KPIs
+[ollama-agent] KPIs: Total Revenue[sum:TotalPrice] | Average Order Value by Payment Method[mean:TotalPrice]
+[ollama-agent] Charts: Unit Price vs Payment Method[bar x:PaymentMethod y:UnitPrice]
+[PowerBI] "Online-Store-Orders - Sales Dashboard.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: OrderID[string], Date[date], CustomerID[string], Product[string], Quantity[number], UnitPrice[number], ShippingAddress[string], PaymentMethod[string], OrderStatus[string], TrackingNumber[string], ItemsInCart[number], CouponCode[string], ReferralSource[string], TotalPrice[number]
+[ollama-agent] Spec: "Order Summary Dashboard" — 1 charts, 2 KPIs
+[ollama-agent] KPIs: Total Revenue[sum:TotalPrice] | Unit Price by Payment Method[sum:UnitPrice]
+[ollama-agent] Charts: Chart 1[bar x:PaymentMethod y:UnitPrice]
+[PowerBI] "Online-Store-Orders - Sales Dashboard.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: OrderID[string], Date[date], CustomerID[string], Product[string], Quantity[number], UnitPrice[number], ShippingAddress[string], PaymentMethod[string], OrderStatus[string], TrackingNumber[string], ItemsInCart[number], CouponCode[string], ReferralSource[string], TotalPrice[number]
+[ollama-agent] Spec: "Dashboard Title" — 1 charts, 2 KPIs
+[ollama-agent] KPIs: Total Revenue[sum:TotalPrice] | Average Order Value[mean:TotalPrice]
+[ollama-agent] Charts: Payment Method Total Price by Order Status[bar x:PaymentMethod y:TotalPrice]
+[PowerBI] "Online-Store-Orders - Sales Dashboard.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: OrderID[string], Date[date], CustomerID[string], Product[string], Quantity[number], UnitPrice[number], ShippingAddress[string], PaymentMethod[string], OrderStatus[string], TrackingNumber[string], ItemsInCart[number], CouponCode[string], ReferralSource[string], TotalPrice[number]
+[ollama-agent] Spec: "Sales by Payment Method" — 1 charts, 2 KPIs
+[ollama-agent] KPIs: Total Revenue[sum:TotalPrice] | Unit Price Comparison[sum:UnitPrice]
+[ollama-agent] Charts: Unit Price by PaymentMethod[bar x:PaymentMethod y:UnitPrice]
+[PowerBI] "Online-Store-Orders - Sales Dashboard.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: OrderID[string], Date[date], CustomerID[string], Product[string], Quantity[number], UnitPrice[number], ShippingAddress[string], PaymentMethod[string], OrderStatus[string], TrackingNumber[string], ItemsInCart[number], CouponCode[string], ReferralSource[string], TotalPrice[number]
+[ollama-agent] Spec: "Order Summary" — 1 charts, 2 KPIs
+[ollama-agent] KPIs: Total Revenue[sum:TotalPrice] | Unit Price by Payment Method[sum:UnitPrice]
+[ollama-agent] Charts: Unit Price by Payment Method[bar x:PaymentMethod y:UnitPrice]
+[PowerBI] "Online-Store-Orders - Sales Dashboard.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: OrderID[string], Date[date], CustomerID[string], Product[string], Quantity[number], UnitPrice[number], ShippingAddress[string], PaymentMethod[string], OrderStatus[string], TrackingNumber[string], ItemsInCart[number], CouponCode[string], ReferralSource[string], TotalPrice[number]
+[ollama-agent] Spec: "Sales by Payment Method" — 1 charts, 2 KPIs
+[ollama-agent] KPIs: Total Revenue[sum:TotalPrice] | Unit Price[sum:UnitPrice]
+[ollama-agent] Charts: Payment Method Unit Price[bar x:PaymentMethod y:UnitPrice]

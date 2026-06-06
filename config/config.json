@@ -5,7 +5,7 @@
     "description": "Browser-based AI agent for building interactive dashboards powered by Claude"
   },
   "claude": {
-    "model": "claude-opus-4-6",
+    "model": "claude-sonnet-4-6",
     "maxTokens": 4096,
     "apiEndpoint": "https://api.anthropic.com/v1/messages",
     "apiVersion": "2023-06-01",

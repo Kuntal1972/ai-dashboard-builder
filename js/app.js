@@ -191,9 +191,11 @@ function wireEvents() {
   });
 
   document.getElementById('btn-download-pbix').addEventListener('click', () => {
-    // If a server-built pbit exists use it, otherwise fall back to client-side JSZip export
-    if (AppState.lastPbitBlob) downloadLastPbit();
-    else exportAsPBIX();
+    downloadDashboardAsExcel();
+  });
+
+  document.getElementById('btn-download-excel').addEventListener('click', () => {
+    downloadDashboardDataAsExcel();
   });
 
   /* ── Mode toggle ─────────────────────────────────────── */

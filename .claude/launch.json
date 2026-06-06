@@ -1,11 +1,1 @@
-{
-  "version": "0.0.1",
-  "configurations": [
-    {
-      "name": "ai-dashboard-builder",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["serve", "-p", "3001", "."],
-      "port": 3001
-    }
-  ]
-}
+{"version":"0.0.1","configurations":[{"name":"ai-dashboard","runtimeExecutable":"npx","runtimeArgs":["serve","-l","5500","."],"port":5500}]}

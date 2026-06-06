@@ -162,6 +162,8 @@ function _finalizeImport(newDatasets) {
     updateDatasetPill(ds.fileName);
     setStatus(`Dataset: ${ds.fileName} — ${ds.rawData.length.toLocaleString()} rows`);
     toast(`Loaded ${ds.rawData.length.toLocaleString()} rows · ${ds.columns.length} columns`, 'success');
+    const excelBtn = document.getElementById('btn-download-excel');
+    if (excelBtn) excelBtn.disabled = false;
   } else {
     // Multi mode
     AppState.datasets = allDatasets;

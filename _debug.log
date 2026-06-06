@@ -1,0 +1,622 @@
+
+=== /api/build-powerbi HIT ===
+prompt: "- Create a line and stacked column chart showing UnitPrice stacked by OrderStatus, with a line for TotalPrice, by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a stacked column chart showing UnitPrice stacked by OrderStatus by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a line and stacked column chart showing UnitPrice stacked by OrderStatus, with a line for TotalPrice, by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice and TotalPrice by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a clustered column chart showing UnitPrice and TotalPrice by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a clustered column chart showing UnitPrice  by PaymentMethod using TotalPrice in the legend"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing TotalPrice by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a horizontal bar chart showing UnitPrice by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a horizontal chart showing UnitPrice by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a horizontal bar chart showing UnitPrice by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== SERVER STARTED on port 3001 at 2026-05-27T17:08:17.887Z ===
+=== SERVER STARTED on port 3001 at 2026-05-27T17:08:48.642Z ===
+=== /api/build-powerbi HIT ===
+prompt: "- Create KPI cards for total Quantity, average UnitPrice, total ItemsInCart\n- Create a multi-row card showing Quantity, UnitPrice, ItemsInCart by PaymentMethod\n- Create a bar chart showing UnitPrice and TotalPrice by PaymentMethod\n- Create a horizontal bar chart showing UnitPrice by PaymentMethod\n- Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a stacked column chart showing UnitPrice by PaymentMethod, stacked by OrderStatus\n- Create a 100% stacked column chart showing employee count by PaymentMethod, using OrderStatus in the legend\n- Create a clustered bar chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a stacked bar chart showing UnitPrice by PaymentMethod, stacked by OrderStatus\n- Create a 100% stacked bar chart showing employee count by PaymentMethod, using OrderStatus in the legend\n- Create a line chart showing UnitPrice trend over Date\n- Create an area chart showing UnitPrice trend over Date\n- Create a stacked area chart showing employee count by PaymentMethod, split by OrderStatus\n- Create a combo chart showing UnitPrice and TotalPrice by PaymentMethod\n- Create a line and stacked column chart showing UnitPrice stacked by OrderStatus, with a line for TotalPrice, by PaymentMethod\n- Create a waterfall chart showing the change in UnitPrice across different PaymentMethod\n- Create a funnel chart showing UnitPrice by PaymentMethod\n- Create a scatter chart of UnitPrice vs TotalPrice, colored by PaymentMethod\n- Create a bubble chart of UnitPrice vs TotalPrice with bubble size showing Quantity, colored by PaymentMethod\n- Create a pie chart showing UnitPrice by PaymentMethod\n- Create a donut chart showing UnitPrice share by PaymentMethod\n- Create a treemap showing UnitPrice by PaymentMethod and OrderStatus\n- Create a gauge chart for total UnitPrice\n- Create a matrix table with PaymentMethod as rows and OrderStatus as columns, showing total UnitPrice\n- Create a data table showing PaymentMethod, OrderStatus, Quantity, UnitPrice, ItemsInCart"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+[WATERFALL INJECT] cat=PaymentMethod val=UnitPrice agg=sum
+[TREEMAP INJECT] cat=PaymentMethod sub=null val=UnitPrice agg=sum
+[MULTI-ROW INJECT] x=PaymentMethod y=Quantity metrics=Quantity,UnitPrice,ItemsInCart,,UnitPrice tableCols=Quantity,UnitPrice,PaymentMethod
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice and TotalPrice by PaymentMethod\n- Create a horizontal bar chart showing UnitPrice by PaymentMethod\n- Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice and TotalPrice by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice and TotalPrice by PaymentMethod\n- Create a horizontal bar chart showing UnitPrice by PaymentMethod\n- Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice and TotalPrice by PaymentMethod\n- Create a horizontal bar chart showing UnitPrice by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice and TotalPrice by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice and TotalPrice by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice and TotalPrice by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== SERVER STARTED on port 3001 at 2026-05-27T17:54:21.498Z ===
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice and TotalPrice by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice by PaymentMethod\n- Create a horizontal bar chart showing UnitPrice by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== SERVER STARTED on port 3001 at 2026-05-27T17:57:52.493Z ===
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice by PaymentMethod\n- Create a horizontal bar chart showing UnitPrice by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice by PaymentMethod\n- Create a horizontal bar chart showing UnitPrice by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== SERVER STARTED on port 3001 at 2026-05-27T18:06:18.158Z ===
+=== /api/build-powerbi HIT ===
+prompt: "- Create a horizontal bar chart showing UnitPrice by PaymentMethod\n- Create a bar chart showing UnitPrice by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice by PaymentMethod\n- Create a horizontal bar chart showing UnitPrice by PaymentMethod\n- Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a bar chart showing UnitPrice and TotalPrice by PaymentMethod\n- Create a horizontal bar chart showing UnitPrice by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a bar chart showing UnitPrice by PaymentMethod\n- Create a horizontal bar chart showing UnitPrice by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a bar chart showing UnitPrice by PaymentMethod\n- Create a horizontal bar chart showing UnitPrice by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice by PaymentMethod\n- Create a horizontal bar chart showing UnitPrice by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice by PaymentMethod\n- Create a horizontal bar chart showing UnitPrice by PaymentMethod\n- Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a bar chart showing UnitPrice by PaymentMethod\n- Create a horizontal bar chart showing UnitPrice by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice by PaymentMethod\n- Create a horizontal bar chart showing UnitPrice by PaymentMethod\n- Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a stacked column chart showing UnitPrice by PaymentMethod, stacked by OrderStatus\n- Create a 100% stacked column chart showing employee count by PaymentMethod, using OrderStatus in the legend"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice by PaymentMethod\n\n- Create a horizontal bar chart showing UnitPrice by PaymentMethod\n\n- Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n\n- Create a stacked column chart showing UnitPrice by PaymentMethod, stacked by OrderStatus\n\n- Create a 100% stacked column chart showing employee count by PaymentMethod, using OrderStatus in the legend"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice by PaymentMethod\n- Create a horizontal bar chart showing UnitPrice by PaymentMethod\n- Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a stacked column chart showing UnitPrice by PaymentMethod, stacked by OrderStatus\n- Create a 100% stacked column chart showing employee count by PaymentMethod, using OrderStatus in the legend\n- Create a clustered bar chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a stacked bar chart showing UnitPrice by PaymentMethod, stacked by OrderStatus\n- Create a 100% stacked bar chart showing employee count by PaymentMethod, using OrderStatus in the legend"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice by PaymentMethod\n- Create a horizontal bar chart showing UnitPrice by PaymentMethod\n- Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a stacked column chart showing UnitPrice by PaymentMethod, stacked by OrderStatus\n- Create a 100% stacked column chart showing employee count by PaymentMethod, using OrderStatus in the legend\n- Create a clustered bar chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a stacked bar chart showing UnitPrice by PaymentMethod, stacked by OrderStatus\n- Create a 100% stacked bar chart showing employee count by PaymentMethod, using OrderStatus in the legend\n- Create a line chart showing UnitPrice trend over Date\n- Create an area chart showing UnitPrice trend over Date"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "Create a Online Store Orders   Sales Dashboard dashboard with:\n\n– KPI cards for total UnitPrice, total TotalPrice, count of Product, total Quantity, total ItemsInCart\n\n– Area chart for UnitPrice trend over Date\n– Bar chart for total UnitPrice by CouponCode\n– Donut chart for UnitPrice share by CouponCode\n– Horizontal bar chart for top 10 PaymentMethod by UnitPrice\n– Bar chart for total TotalPrice by CouponCode\n– Scatter plot of UnitPrice vs TotalPrice\n– Bar chart for total UnitPrice by PaymentMethod\n– Data table showing CouponCode, PaymentMethod, Quantity, UnitPrice, ItemsInCart\n\n– Filters for Date, CouponCode, PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice  by ReferralSource\n- Create a horizontal bar chart showing TotalPrice by ReferralSource\n- Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice by ReferralSource\n- Create a horizontal bar chart showing UnitPrice by Product"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice by ReferralSource"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== SERVER STARTED on port 3001 at 2026-05-27T19:56:32.284Z ===
+=== SERVER STARTED on port 3001 at 2026-05-27T20:06:49.989Z ===
+=== SERVER STARTED on port 3001 at 2026-05-27T20:08:12.933Z ===
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice by PaymentMethod\n- Create a horizontal bar chart showing UnitPrice by PaymentMethod\n- Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a stacked column chart showing UnitPrice by PaymentMethod, stacked by OrderStatus\n- Create a 100% stacked column chart showing employee count by PaymentMethod, using OrderStatus in the legend"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== SERVER STARTED on port 3001 at 2026-05-27T20:22:44.366Z ===
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice by PaymentMethod\n- Create a horizontal bar chart showing UnitPrice by PaymentMethod\n- Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a stacked column chart showing UnitPrice by PaymentMethod, stacked by OrderStatus\n- Create a 100% stacked column chart showing employee count by PaymentMethod, using OrderStatus in the legend"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+[multi-line] 5 lines detected — firing parallel Ollama calls
+[multi-line]   [0] Create a bar chart showing UnitPrice by PaymentMethod
+[multi-line]   [1] Create a horizontal bar chart showing UnitPrice by PaymentMethod
+[multi-line]   [2] Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [3] Create a stacked column chart showing UnitPrice by PaymentMethod, stacked by OrderStatus
+[multi-line]   [4] Create a 100% stacked column chart showing employee count by PaymentMethod, using OrderStatus in the legend
+[multi-line] merged → 5 charts: bar(x=PaymentMethod,y=UnitPrice,orient=v,color=null) | bar(x=PaymentMethod,y=UnitPrice,orient=h,color=null) | bar(x=PaymentMethod,y=UnitPrice,orient=v,color=OrderStatus) | bar(x=PaymentMethod,y=UnitPrice,orient=v,color=OrderID) | bar(x=PaymentMethod,y=null,orient=v,color=OrderStatus)
+=== /api/build-powerbi HIT ===
+prompt: "- Create a stacked column chart showing UnitPrice by PaymentMethod, stacked by OrderStatus"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a clustered bar chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a stacked bar chart showing UnitPrice by PaymentMethod, stacked by OrderStatus\n- Create a 100% stacked bar chart showing employee count by PaymentMethod, using OrderStatus in the legend"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+[multi-line] 3 lines detected — firing parallel Ollama calls
+[multi-line]   [0] Create a clustered bar chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [1] Create a stacked bar chart showing UnitPrice by PaymentMethod, stacked by OrderStatus
+[multi-line]   [2] Create a 100% stacked bar chart showing employee count by PaymentMethod, using OrderStatus in the legend
+=== SERVER STARTED on port 3001 at 2026-05-27T20:31:45.213Z ===
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice by PaymentMethod\n- Create a horizontal bar chart showing UnitPrice by PaymentMethod\n- Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a stacked column chart showing UnitPrice by PaymentMethod, stacked by OrderStatus\n- Create a 100% stacked column chart showing employee count by PaymentMethod, using OrderStatus in the legend"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+[multi-line] 5 lines detected — firing parallel Ollama calls
+[multi-line]   [0] Create a bar chart showing UnitPrice by PaymentMethod
+[multi-line]   [1] Create a horizontal bar chart showing UnitPrice by PaymentMethod
+[multi-line]   [2] Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [3] Create a stacked column chart showing UnitPrice by PaymentMethod, stacked by OrderStatus
+[multi-line]   [4] Create a 100% stacked column chart showing employee count by PaymentMethod, using OrderStatus in the legend
+[multi-line] merged → 5 charts: bar(x=PaymentMethod,y=UnitPrice,orient=v,color=null,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=h,color=null,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=v,color=OrderStatus,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=v,color=OrderStatus,stack=stack) | bar(x=PaymentMethod,y=null,orient=v,color=OrderStatus,stack=percent)
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice by PaymentMethod\n- Create a horizontal bar chart showing UnitPrice by PaymentMethod\n- Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a stacked column chart showing UnitPrice by PaymentMethod, stacked by OrderStatus\n- Create a 100% stacked column chart showing employee count by PaymentMethod, using OrderStatus in the legend\n- Create a clustered bar chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a stacked bar chart showing UnitPrice by PaymentMethod, stacked by OrderStatus\n- Create a 100% stacked bar chart showing employee count by PaymentMethod, using OrderStatus in the legend"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+[multi-line] 8 lines detected — firing parallel Ollama calls
+[multi-line]   [0] Create a bar chart showing UnitPrice by PaymentMethod
+[multi-line]   [1] Create a horizontal bar chart showing UnitPrice by PaymentMethod
+[multi-line]   [2] Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [3] Create a stacked column chart showing UnitPrice by PaymentMethod, stacked by OrderStatus
+[multi-line]   [4] Create a 100% stacked column chart showing employee count by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [5] Create a clustered bar chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [6] Create a stacked bar chart showing UnitPrice by PaymentMethod, stacked by OrderStatus
+[multi-line]   [7] Create a 100% stacked bar chart showing employee count by PaymentMethod, using OrderStatus in the legend
+[multi-line] merged → 8 charts: bar(x=PaymentMethod,y=UnitPrice,orient=v,color=null,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=h,color=null,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=v,color=OrderStatus,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=v,color=OrderStatus,stack=stack) | bar(x=PaymentMethod,y=null,orient=v,color=OrderStatus,stack=percent) | bar(x=PaymentMethod,y=UnitPrice,orient=h,color=OrderStatus,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=h,color=OrderStatus,stack=stack) | bar(x=PaymentMethod,y=null,orient=h,color=OrderStatus,stack=percent)
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice by PaymentMethod\n- Create a horizontal bar chart showing UnitPrice by PaymentMethod\n- Create a stacked column chart showing UnitPrice by PaymentMethod, stacked by OrderStatus\n- Create a 100% stacked column chart showing employee count by PaymentMethod, using OrderStatus in the legend\n- Create a clustered bar chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a stacked bar chart showing UnitPrice by PaymentMethod, stacked by OrderStatus\n- Create a 100% stacked bar chart showing employee count by PaymentMethod, using OrderStatus in the legend\n- Create a line chart showing UnitPrice trend over Date\n- Create an area chart showing UnitPrice trend over Date\n- Create a stacked area chart showing employee count by PaymentMethod, split by OrderStatus\n- Create a combo chart showing UnitPrice and TotalPrice by PaymentMethod\n- Create a line and stacked column chart showing UnitPrice stacked by OrderStatus, with a line for TotalPrice, by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+[multi-line] 12 lines detected — firing parallel Ollama calls
+[multi-line]   [0] Create a bar chart showing UnitPrice by PaymentMethod
+[multi-line]   [1] Create a horizontal bar chart showing UnitPrice by PaymentMethod
+[multi-line]   [2] Create a stacked column chart showing UnitPrice by PaymentMethod, stacked by OrderStatus
+[multi-line]   [3] Create a 100% stacked column chart showing employee count by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [4] Create a clustered bar chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [5] Create a stacked bar chart showing UnitPrice by PaymentMethod, stacked by OrderStatus
+[multi-line]   [6] Create a 100% stacked bar chart showing employee count by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [7] Create a line chart showing UnitPrice trend over Date
+[multi-line]   [8] Create an area chart showing UnitPrice trend over Date
+[multi-line]   [9] Create a stacked area chart showing employee count by PaymentMethod, split by OrderStatus
+[multi-line]   [10] Create a combo chart showing UnitPrice and TotalPrice by PaymentMethod
+[multi-line]   [11] Create a line and stacked column chart showing UnitPrice stacked by OrderStatus, with a line for TotalPrice, by PaymentMethod
+[multi-line] merged → 12 charts: bar(x=PaymentMethod,y=UnitPrice,orient=v,color=null,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=h,color=null,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=v,color=OrderStatus,stack=stack) | bar(x=PaymentMethod,y=null,orient=v,color=OrderStatus,stack=percent) | bar(x=PaymentMethod,y=UnitPrice,orient=h,color=OrderStatus,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=h,color=OrderStatus,stack=stack) | bar(x=PaymentMethod,y=null,orient=h,color=OrderStatus,stack=percent) | line(x=Date,y=UnitPrice,orient=undefined,color=null,stack=-) | area(x=Date,y=UnitPrice,orient=undefined,color=null,stack=-) | area(x=PaymentMethod,y=null,orient=undefined,color=OrderStatus,stack=stack) | combo(x=PaymentMethod,y=UnitPrice,orient=undefined,color=undefined,stack=-) | combo(x=PaymentMethod,y=UnitPrice,orient=undefined,color=OrderStatus,stack=stack)
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice by PaymentMethod\n- Create a horizontal bar chart showing UnitPrice by PaymentMethod\n- Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a stacked column chart showing UnitPrice by PaymentMethod, stacked by OrderStatus\n- Create a 100% stacked column chart showing employee count by PaymentMethod, using OrderStatus in the legend\n- Create a clustered bar chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a stacked bar chart showing UnitPrice by PaymentMethod, stacked by OrderStatus\n- Create a 100% stacked bar chart showing employee count by PaymentMethod, using OrderStatus in the legend\n- Create a line chart showing UnitPrice trend over Date\n- Create an area chart showing UnitPrice trend over Date\n- Create a stacked area chart showing employee count by PaymentMethod, split by OrderStatus\n- Create a combo chart showing UnitPrice and TotalPrice by PaymentMethod\n- Create a line and stacked column chart showing UnitPrice stacked by OrderStatus, with a line for TotalPrice, by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+[multi-line] 13 lines detected — firing parallel Ollama calls
+[multi-line]   [0] Create a bar chart showing UnitPrice by PaymentMethod
+[multi-line]   [1] Create a horizontal bar chart showing UnitPrice by PaymentMethod
+[multi-line]   [2] Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [3] Create a stacked column chart showing UnitPrice by PaymentMethod, stacked by OrderStatus
+[multi-line]   [4] Create a 100% stacked column chart showing employee count by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [5] Create a clustered bar chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [6] Create a stacked bar chart showing UnitPrice by PaymentMethod, stacked by OrderStatus
+[multi-line]   [7] Create a 100% stacked bar chart showing employee count by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [8] Create a line chart showing UnitPrice trend over Date
+[multi-line]   [9] Create an area chart showing UnitPrice trend over Date
+[multi-line]   [10] Create a stacked area chart showing employee count by PaymentMethod, split by OrderStatus
+[multi-line]   [11] Create a combo chart showing UnitPrice and TotalPrice by PaymentMethod
+[multi-line]   [12] Create a line and stacked column chart showing UnitPrice stacked by OrderStatus, with a line for TotalPrice, by PaymentMethod
+[multi-line] merged → 13 charts: bar(x=PaymentMethod,y=UnitPrice,orient=v,color=null,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=h,color=null,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=v,color=OrderStatus,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=v,color=OrderStatus,stack=stack) | bar(x=PaymentMethod,y=null,orient=v,color=OrderStatus,stack=percent) | bar(x=PaymentMethod,y=UnitPrice,orient=h,color=OrderStatus,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=h,color=OrderStatus,stack=stack) | bar(x=PaymentMethod,y=null,orient=h,color=OrderStatus,stack=percent) | line(x=Date,y=UnitPrice,orient=undefined,color=null,stack=-) | area(x=Date,y=UnitPrice,orient=undefined,color=null,stack=-) | area(x=PaymentMethod,y=null,orient=undefined,color=OrderStatus,stack=stack) | combo(x=PaymentMethod,y=UnitPrice,orient=undefined,color=undefined,stack=-) | combo(x=PaymentMethod,y=UnitPrice,orient=undefined,color=OrderStatus,stack=stack)
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice and TotalPrice by PaymentMethod\n- Create a horizontal bar chart showing UnitPrice by PaymentMethod\n- Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a stacked column chart showing UnitPrice by PaymentMethod, stacked by OrderStatus\n- Create a 100% stacked column chart showing employee count by PaymentMethod, using OrderStatus in the legend\n- Create a clustered bar chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a stacked bar chart showing UnitPrice by PaymentMethod, stacked by OrderStatus\n- Create a 100% stacked bar chart showing employee count by PaymentMethod, using OrderStatus in the legend\n- Create a line chart showing UnitPrice trend over Date\n- Create an area chart showing UnitPrice trend over Date\n- Create a stacked area chart showing employee count by PaymentMethod, split by OrderStatus\n- Create a combo chart showing UnitPrice and TotalPrice by PaymentMethod\n- Create a line and stacked column chart showing UnitPrice stacked by OrderStatus, with a line for TotalPrice, by PaymentMethod\n- Create a waterfall chart showing the change in UnitPrice across different PaymentMethod\n- Create a funnel chart showing UnitPrice by PaymentMethod\n- Create a bubble chart of UnitPrice vs TotalPrice with bubble size showing Quantity, colored by PaymentMethod\n- Create a pie chart showing UnitPrice by PaymentMethod\n- Create a donut chart showing UnitPrice share by PaymentMethod\n- Create a treemap showing UnitPrice by PaymentMethod and OrderStatus"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+[multi-line] 19 lines detected — firing parallel Ollama calls
+[multi-line]   [0] Create a bar chart showing UnitPrice and TotalPrice by PaymentMethod
+[multi-line]   [1] Create a horizontal bar chart showing UnitPrice by PaymentMethod
+[multi-line]   [2] Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [3] Create a stacked column chart showing UnitPrice by PaymentMethod, stacked by OrderStatus
+[multi-line]   [4] Create a 100% stacked column chart showing employee count by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [5] Create a clustered bar chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [6] Create a stacked bar chart showing UnitPrice by PaymentMethod, stacked by OrderStatus
+[multi-line]   [7] Create a 100% stacked bar chart showing employee count by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [8] Create a line chart showing UnitPrice trend over Date
+[multi-line]   [9] Create an area chart showing UnitPrice trend over Date
+[multi-line]   [10] Create a stacked area chart showing employee count by PaymentMethod, split by OrderStatus
+[multi-line]   [11] Create a combo chart showing UnitPrice and TotalPrice by PaymentMethod
+[multi-line]   [12] Create a line and stacked column chart showing UnitPrice stacked by OrderStatus, with a line for TotalPrice, by PaymentMethod
+[multi-line]   [13] Create a waterfall chart showing the change in UnitPrice across different PaymentMethod
+[multi-line]   [14] Create a funnel chart showing UnitPrice by PaymentMethod
+[multi-line]   [15] Create a bubble chart of UnitPrice vs TotalPrice with bubble size showing Quantity, colored by PaymentMethod
+[multi-line]   [16] Create a pie chart showing UnitPrice by PaymentMethod
+[multi-line]   [17] Create a donut chart showing UnitPrice share by PaymentMethod
+[multi-line]   [18] Create a treemap showing UnitPrice by PaymentMethod and OrderStatus
+[WATERFALL INJECT] cat=PaymentMethod val=UnitPrice agg=sum
+[TREEMAP INJECT] cat=PaymentMethod sub=null val=UnitPrice agg=sum
+[multi-line] merged → 19 charts: bar(x=PaymentMethod,y=UnitPrice,orient=v,color=null,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=h,color=null,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=v,color=OrderStatus,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=v,color=OrderStatus,stack=stack) | bar(x=PaymentMethod,y=null,orient=v,color=OrderStatus,stack=percent) | bar(x=PaymentMethod,y=UnitPrice,orient=h,color=OrderStatus,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=h,color=OrderStatus,stack=stack) | bar(x=PaymentMethod,y=null,orient=h,color=OrderStatus,stack=percent) | line(x=Date,y=UnitPrice,orient=undefined,color=null,stack=-) | area(x=Date,y=UnitPrice,orient=undefined,color=null,stack=-) | area(x=PaymentMethod,y=null,orient=undefined,color=OrderStatus,stack=stack) | combo(x=PaymentMethod,y=UnitPrice,orient=undefined,color=undefined,stack=-) | combo(x=PaymentMethod,y=UnitPrice,orient=undefined,color=OrderStatus,stack=stack) | waterfall(x=PaymentMethod,y=UnitPrice,orient=undefined,color=null,stack=-) | funnel(x=PaymentMethod,y=UnitPrice,orient=undefined,color=null,stack=-) | bubble(x=UnitPrice,y=Quantity,orient=undefined,color=null,stack=-) | pie(x=PaymentMethod,y=null,orient=undefined,color=null,stack=-) | donut(x=PaymentMethod,y=null,orient=undefined,color=undefined,stack=-) | treemap(x=PaymentMethod,y=UnitPrice,orient=undefined,color=undefined,stack=-)
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice by PaymentMethod\n- Create a horizontal bar chart showing UnitPrice by PaymentMethod\n- Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a stacked column chart showing UnitPrice by PaymentMethod, stacked by OrderStatus\n- Create a 100% stacked column chart showing employee count by PaymentMethod, using OrderStatus in the legend\n- Create a clustered bar chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a stacked bar chart showing UnitPrice by PaymentMethod, stacked by OrderStatus\n- Create a 100% stacked bar chart showing employee count by PaymentMethod, using OrderStatus in the legend\n- Create a line chart showing UnitPrice trend over Date\n- Create an area chart showing UnitPrice trend over Date\n- Create a stacked area chart showing employee count by PaymentMethod, split by OrderStatus\n- Create a combo chart showing UnitPrice and TotalPrice by PaymentMethod\n- Create a line and stacked column chart showing UnitPrice stacked by OrderStatus, with a line for TotalPrice, by PaymentMethod\n- Create a waterfall chart showing the change in UnitPrice across different PaymentMethod\n- Create a funnel chart showing UnitPrice by PaymentMethod\n- Create a bubble chart of UnitPrice vs TotalPrice with bubble size showing Quantity, colored by PaymentMethod\n- Create a pie chart showing UnitPrice by PaymentMethod\n- Create a donut chart showing UnitPrice share by PaymentMethod\n- Create a treemap showing UnitPrice by PaymentMethod and OrderStatus"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+[multi-line] 19 lines detected — firing parallel Ollama calls
+[multi-line]   [0] Create a bar chart showing UnitPrice by PaymentMethod
+[multi-line]   [1] Create a horizontal bar chart showing UnitPrice by PaymentMethod
+[multi-line]   [2] Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [3] Create a stacked column chart showing UnitPrice by PaymentMethod, stacked by OrderStatus
+[multi-line]   [4] Create a 100% stacked column chart showing employee count by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [5] Create a clustered bar chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [6] Create a stacked bar chart showing UnitPrice by PaymentMethod, stacked by OrderStatus
+[multi-line]   [7] Create a 100% stacked bar chart showing employee count by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [8] Create a line chart showing UnitPrice trend over Date
+[multi-line]   [9] Create an area chart showing UnitPrice trend over Date
+[multi-line]   [10] Create a stacked area chart showing employee count by PaymentMethod, split by OrderStatus
+[multi-line]   [11] Create a combo chart showing UnitPrice and TotalPrice by PaymentMethod
+[multi-line]   [12] Create a line and stacked column chart showing UnitPrice stacked by OrderStatus, with a line for TotalPrice, by PaymentMethod
+[multi-line]   [13] Create a waterfall chart showing the change in UnitPrice across different PaymentMethod
+[multi-line]   [14] Create a funnel chart showing UnitPrice by PaymentMethod
+[multi-line]   [15] Create a bubble chart of UnitPrice vs TotalPrice with bubble size showing Quantity, colored by PaymentMethod
+[multi-line]   [16] Create a pie chart showing UnitPrice by PaymentMethod
+[multi-line]   [17] Create a donut chart showing UnitPrice share by PaymentMethod
+[multi-line]   [18] Create a treemap showing UnitPrice by PaymentMethod and OrderStatus
+[WATERFALL INJECT] cat=PaymentMethod val=UnitPrice agg=sum
+[TREEMAP INJECT] cat=PaymentMethod sub=null val=UnitPrice agg=sum
+[multi-line] merged → 19 charts: bar(x=PaymentMethod,y=UnitPrice,orient=v,color=null,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=h,color=null,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=v,color=OrderStatus,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=v,color=OrderStatus,stack=stack) | bar(x=PaymentMethod,y=null,orient=v,color=OrderStatus,stack=percent) | bar(x=PaymentMethod,y=UnitPrice,orient=h,color=OrderStatus,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=h,color=OrderStatus,stack=stack) | bar(x=PaymentMethod,y=null,orient=h,color=OrderStatus,stack=percent) | line(x=Date,y=UnitPrice,orient=undefined,color=null,stack=-) | area(x=Date,y=UnitPrice,orient=undefined,color=null,stack=-) | area(x=PaymentMethod,y=null,orient=undefined,color=OrderStatus,stack=stack) | combo(x=PaymentMethod,y=UnitPrice,orient=undefined,color=undefined,stack=-) | combo(x=PaymentMethod,y=UnitPrice,orient=undefined,color=OrderStatus,stack=stack) | waterfall(x=PaymentMethod,y=UnitPrice,orient=undefined,color=null,stack=-) | funnel(x=PaymentMethod,y=UnitPrice,orient=undefined,color=null,stack=-) | bubble(x=UnitPrice,y=Quantity,orient=undefined,color=null,stack=-) | pie(x=PaymentMethod,y=null,orient=undefined,color=null,stack=-) | donut(x=PaymentMethod,y=null,orient=undefined,color=null,stack=-) | treemap(x=PaymentMethod,y=UnitPrice,orient=undefined,color=null,stack=-)
+=== /api/build-powerbi HIT ===
+prompt: "- Create a treemap showing UnitPrice by PaymentMethod and OrderStatus"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+[TREEMAP INJECT] cat=PaymentMethod sub=null val=UnitPrice agg=sum
+=== SERVER STARTED on port 3001 at 2026-05-27T21:34:31.305Z ===
+=== SERVER STARTED on port 3001 at 2026-05-27T21:36:32.589Z ===
+=== /api/build-powerbi HIT ===
+prompt: "Create a treemap showing UnitPrice by PaymentMethod and OrderStatus"
+columns: ["OrderID","PaymentMethod","OrderStatus","UnitPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "Create a treemap showing UnitPrice by PaymentMethod and OrderStatus"
+columns: ["OrderID","PaymentMethod","OrderStatus","UnitPrice"]
+useGroq: false
+[TREEMAP INJECT] cat=PaymentMethod sub=OrderStatus val=UnitPrice agg=sum title="UnitPrice by PaymentMethod & OrderStatus"
+=== /api/build-powerbi HIT ===
+prompt: "- Create a treemap showing UnitPrice by PaymentMethod and OrderStatus"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+[TREEMAP INJECT] cat=PaymentMethod sub=OrderStatus val=UnitPrice agg=sum title="UnitPrice by PaymentMethod & OrderStatus"
+=== /api/build-powerbi HIT ===
+prompt: "- Create KPI cards for total Quantity, average UnitPrice, total ItemsInCart\n- Create a multi-row card showing Quantity, UnitPrice, ItemsInCart by PaymentMethod\n- Create a bar chart showing UnitPrice and TotalPrice by PaymentMethod\n- Create a horizontal bar chart showing UnitPrice by PaymentMethod\n- Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a stacked column chart showing UnitPrice by PaymentMethod, stacked by OrderStatus\n- Create a 100% stacked column chart showing employee count by PaymentMethod, using OrderStatus in the legend\n- Create a clustered bar chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a stacked bar chart showing UnitPrice by PaymentMethod, stacked by OrderStatus\n- Create a 100% stacked bar chart showing employee count by PaymentMethod, using OrderStatus in the legend\n- Create a line chart showing UnitPrice trend over Date\n- Create an area chart showing UnitPrice trend over Date\n- Create a stacked area chart showing employee count by PaymentMethod, split by OrderStatus\n- Create a combo chart showing UnitPrice and TotalPrice by PaymentMethod\n- Create a line and stacked column chart showing UnitPrice stacked by OrderStatus, with a line for TotalPrice, by PaymentMethod\n- Create a waterfall chart showing the change in UnitPrice across different PaymentMethod\n- Create a funnel chart showing UnitPrice by PaymentMethod\n- Create a bubble chart of UnitPrice vs TotalPrice with bubble size showing Quantity, colored by PaymentMethod\n- Create a pie chart showing UnitPrice by PaymentMethod\n- Create a donut chart showing UnitPrice share by PaymentMethod\n- Create a treemap showing UnitPrice by PaymentMethod and OrderStatus\n- This chart type doesn't support the given dataset\n- This chart type doesn't support the given dataset\n- Create a gauge chart for total UnitPrice\n- Create a matrix table with PaymentMethod as rows and OrderStatus as columns, showing total UnitPrice\n- Create a data table showing PaymentMethod, OrderStatus, Quantity, UnitPrice, ItemsInCart"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+[multi-line] 26 lines detected — firing parallel Ollama calls
+[multi-line]   [0] Create KPI cards for total Quantity, average UnitPrice, total ItemsInCart
+[multi-line]   [1] Create a multi-row card showing Quantity, UnitPrice, ItemsInCart by PaymentMethod
+[multi-line]   [2] Create a bar chart showing UnitPrice and TotalPrice by PaymentMethod
+[multi-line]   [3] Create a horizontal bar chart showing UnitPrice by PaymentMethod
+[multi-line]   [4] Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [5] Create a stacked column chart showing UnitPrice by PaymentMethod, stacked by OrderStatus
+[multi-line]   [6] Create a 100% stacked column chart showing employee count by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [7] Create a clustered bar chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [8] Create a stacked bar chart showing UnitPrice by PaymentMethod, stacked by OrderStatus
+[multi-line]   [9] Create a 100% stacked bar chart showing employee count by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [10] Create a line chart showing UnitPrice trend over Date
+[multi-line]   [11] Create an area chart showing UnitPrice trend over Date
+[multi-line]   [12] Create a stacked area chart showing employee count by PaymentMethod, split by OrderStatus
+[multi-line]   [13] Create a combo chart showing UnitPrice and TotalPrice by PaymentMethod
+[multi-line]   [14] Create a line and stacked column chart showing UnitPrice stacked by OrderStatus, with a line for TotalPrice, by PaymentMethod
+[multi-line]   [15] Create a waterfall chart showing the change in UnitPrice across different PaymentMethod
+[multi-line]   [16] Create a funnel chart showing UnitPrice by PaymentMethod
+[multi-line]   [17] Create a bubble chart of UnitPrice vs TotalPrice with bubble size showing Quantity, colored by PaymentMethod
+[multi-line]   [18] Create a pie chart showing UnitPrice by PaymentMethod
+[multi-line]   [19] Create a donut chart showing UnitPrice share by PaymentMethod
+[multi-line]   [20] Create a treemap showing UnitPrice by PaymentMethod and OrderStatus
+[multi-line]   [21] This chart type doesn't support the given dataset
+[multi-line]   [22] This chart type doesn't support the given dataset
+[multi-line]   [23] Create a gauge chart for total UnitPrice
+[multi-line]   [24] Create a matrix table with PaymentMethod as rows and OrderStatus as columns, showing total UnitPrice
+[multi-line]   [25] Create a data table showing PaymentMethod, OrderStatus, Quantity, UnitPrice, ItemsInCart
+[WATERFALL INJECT] cat=PaymentMethod val=UnitPrice agg=sum
+[TREEMAP INJECT] cat=PaymentMethod sub=OrderStatus val=UnitPrice agg=sum title="UnitPrice by PaymentMethod & OrderStatus"
+matrix from Ollama: rows=OrderID, cols=Date, val=Quantity, agg=count
+[MULTI-ROW INJECT] x=PaymentMethod y=Quantity metrics=Quantity,UnitPrice tableCols=Quantity,UnitPrice,PaymentMethod
+[multi-line] merged → 30 charts: bar(x=Product,y=Quantity,orient=undefined,color=null,stack=-) | line(x=Product,y=UnitPrice,orient=undefined,color=null,stack=-) | scatter(x=Quantity,y=ItemsInCart,orient=undefined,color=null,stack=-) | multi_row_card(x=PaymentMethod,y=Quantity,orient=undefined,color=undefined,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=v,color=null,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=h,color=null,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=v,color=OrderStatus,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=v,color=OrderStatus,stack=stack) | bar(x=PaymentMethod,y=null,orient=v,color=OrderStatus,stack=percent) | bar(x=PaymentMethod,y=UnitPrice,orient=h,color=OrderStatus,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=h,color=OrderStatus,stack=stack) | bar(x=PaymentMethod,y=null,orient=h,color=OrderStatus,stack=percent) | line(x=Date,y=UnitPrice,orient=undefined,color=null,stack=-) | area(x=Date,y=UnitPrice,orient=undefined,color=null,stack=-) | area(x=PaymentMethod,y=null,orient=undefined,color=OrderStatus,stack=stack) | combo(x=PaymentMethod,y=UnitPrice,orient=undefined,color=undefined,stack=-) | combo(x=PaymentMethod,y=UnitPrice,orient=undefined,color=OrderStatus,stack=stack) | waterfall(x=PaymentMethod,y=UnitPrice,orient=undefined,color=null,stack=-) | funnel(x=PaymentMethod,y=UnitPrice,orient=undefined,color=null,stack=-) | bubble(x=UnitPrice,y=Quantity,orient=undefined,color=null,stack=-) | pie(x=PaymentMethod,y=null,orient=undefined,color=null,stack=-) | donut(x=PaymentMethod,y=null,orient=undefined,color=undefined,stack=-) | treemap(x=PaymentMethod,y=UnitPrice,orient=undefined,color=OrderStatus,stack=-) | bar(x=Product,y=TotalPrice,orient=undefined,color=null,stack=-) | bar(x=Product,y=TotalPrice,orient=undefined,color=null,stack=-) | pie(x=Product,y=UnitPrice,orient=undefined,color=null,stack=-) | gauge(x=null,y=UnitPrice,orient=undefined,color=null,stack=-) | matrix(x=PaymentMethod,y=UnitPrice,orient=undefined,color=OrderStatus,stack=-) | pie(x=PaymentMethod,y=PaymentMethod,orient=undefined,color=null,stack=-) | line(x=OrderStatus,y=TotalPrice,orient=undefined,color=null,stack=-)
+=== /api/build-powerbi HIT ===
+prompt: "- This chart type doesn't support the given dataset\n- This chart type doesn't support the given dataset"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+[multi-line] 2 lines detected — firing parallel Ollama calls
+[multi-line]   [0] This chart type doesn't support the given dataset
+[multi-line]   [1] This chart type doesn't support the given dataset
+[multi-line] merged → 2 charts: line(x=Product,y=TotalPrice,orient=undefined,color=null,stack=-) | line(x=Product,y=TotalPrice,orient=undefined,color=null,stack=-)
+=== /api/build-powerbi HIT ===
+prompt: "- Create a gauge chart for total UnitPrice\n- Create a matrix table with PaymentMethod as rows and OrderStatus as columns, showing total UnitPrice\n- Create a data table showing PaymentMethod, OrderStatus, Quantity, UnitPrice, ItemsInCart"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+[multi-line] 3 lines detected — firing parallel Ollama calls
+[multi-line]   [0] Create a gauge chart for total UnitPrice
+[multi-line]   [1] Create a matrix table with PaymentMethod as rows and OrderStatus as columns, showing total UnitPrice
+[multi-line]   [2] Create a data table showing PaymentMethod, OrderStatus, Quantity, UnitPrice, ItemsInCart
+matrix from Ollama: rows=OrderID, cols=Date, val=Quantity, agg=count
+[multi-line] merged → 4 charts: gauge(x=null,y=UnitPrice,orient=undefined,color=null,stack=-) | matrix(x=PaymentMethod,y=UnitPrice,orient=undefined,color=OrderStatus,stack=-) | pie(x=PaymentMethod,y=PaymentMethod,orient=undefined,color=null,stack=-) | line(x=OrderStatus,y=TotalPrice,orient=undefined,color=null,stack=-)
+=== /api/build-powerbi HIT ===
+prompt: "- Create a data table showing PaymentMethod, OrderStatus, Quantity, UnitPrice, ItemsInCart"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== SERVER STARTED on port 3001 at 2026-05-27T22:04:01.350Z ===
+=== /api/build-powerbi HIT ===
+prompt: "- Create a data table showing PaymentMethod, OrderStatus, Quantity, UnitPrice, ItemsInCart"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a gauge chart for total UnitPrice\n- Create a matrix table with PaymentMethod as rows and OrderStatus as columns, showing total UnitPrice\n- Create a data table showing PaymentMethod, OrderStatus, Quantity, UnitPrice, ItemsInCart"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+[multi-line] 3 lines detected — firing parallel Ollama calls
+[multi-line]   [0] Create a gauge chart for total UnitPrice
+[multi-line]   [1] Create a matrix table with PaymentMethod as rows and OrderStatus as columns, showing total UnitPrice
+[multi-line]   [2] Create a data table showing PaymentMethod, OrderStatus, Quantity, UnitPrice, ItemsInCart
+matrix from Ollama: rows=OrderID, cols=Date, val=Quantity, agg=count
+[multi-line] merged → 3 charts: gauge(x=null,y=UnitPrice,orient=undefined,color=null,stack=-) | matrix(x=PaymentMethod,y=UnitPrice,orient=undefined,color=OrderStatus,stack=-) | table(x=null,y=null,orient=undefined,color=undefined,stack=-)
+=== /api/build-powerbi HIT ===
+prompt: "- Create a multi-row card showing Quantity, UnitPrice, ItemsInCart by PaymentMethod\n- Create a gauge chart for total UnitPrice\n- Create a matrix table with PaymentMethod as rows and OrderStatus as columns, showing total UnitPrice\n- Create a data table showing PaymentMethod, OrderStatus, Quantity, UnitPrice, ItemsInCart"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+[multi-line] 4 lines detected — firing parallel Ollama calls
+[multi-line]   [0] Create a multi-row card showing Quantity, UnitPrice, ItemsInCart by PaymentMethod
+[multi-line]   [1] Create a gauge chart for total UnitPrice
+[multi-line]   [2] Create a matrix table with PaymentMethod as rows and OrderStatus as columns, showing total UnitPrice
+[multi-line]   [3] Create a data table showing PaymentMethod, OrderStatus, Quantity, UnitPrice, ItemsInCart
+[MULTI-ROW INJECT] x=PaymentMethod y=Quantity metrics=Quantity,UnitPrice tableCols=Quantity,UnitPrice,PaymentMethod
+matrix from Ollama: rows=OrderID, cols=Date, val=Quantity, agg=count
+[multi-line] merged → 4 charts: multi_row_card(x=PaymentMethod,y=Quantity,orient=undefined,color=undefined,stack=-) | gauge(x=null,y=UnitPrice,orient=undefined,color=null,stack=-) | matrix(x=PaymentMethod,y=UnitPrice,orient=undefined,color=OrderStatus,stack=-) | table(x=null,y=null,orient=undefined,color=undefined,stack=-)
+=== /api/build-powerbi HIT ===
+prompt: "Create a multi-row card showing Quantity, UnitPrice, ItemsInCart by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create KPI cards for total Quantity, average UnitPrice, total ItemsInCart\n- Create a multi-row card showing Quantity, UnitPrice, ItemsInCart by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+[multi-line] 2 lines detected — firing parallel Ollama calls
+[multi-line]   [0] Create KPI cards for total Quantity, average UnitPrice, total ItemsInCart
+[multi-line]   [1] Create a multi-row card showing Quantity, UnitPrice, ItemsInCart by PaymentMethod
+[MULTI-ROW INJECT] x=PaymentMethod y=Quantity metrics=Quantity,UnitPrice tableCols=Quantity,UnitPrice,PaymentMethod
+[MULTI-ROW INJECT] x=PaymentMethod y=Quantity metrics=Quantity,UnitPrice tableCols=Quantity,UnitPrice,PaymentMethod
+[multi-line] merged → 4 charts: pie(x=Product,y=Quantity,orient=undefined,color=null,stack=-) | line(x=Product,y=UnitPrice,orient=undefined,color=null,stack=-) | bar(x=ShippingAddress,y=ItemsInCart,orient=undefined,color=null,stack=-) | multi_row_card(x=PaymentMethod,y=Quantity,orient=undefined,color=undefined,stack=-)
+=== /api/build-powerbi HIT ===
+prompt: "- Create KPI cards for total Quantity, average UnitPrice, total ItemsInCart"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create KPI cards for total Quantity, average UnitPrice, total ItemsInCart\n- Create a matrix table with PaymentMethod as rows and OrderStatus as columns, showing total UnitPrice\n- Create a multi-row card showing Quantity, UnitPrice, ItemsInCart by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+[multi-line] 3 lines detected — firing parallel Ollama calls
+[multi-line]   [0] Create KPI cards for total Quantity, average UnitPrice, total ItemsInCart
+[multi-line]   [1] Create a matrix table with PaymentMethod as rows and OrderStatus as columns, showing total UnitPrice
+[multi-line]   [2] Create a multi-row card showing Quantity, UnitPrice, ItemsInCart by PaymentMethod
+matrix from Ollama: rows=OrderID, cols=Date, val=Quantity, agg=count
+[MULTI-ROW INJECT] x=PaymentMethod y=Quantity metrics=Quantity,UnitPrice tableCols=Quantity,UnitPrice,PaymentMethod
+[multi-line] merged → 5 charts: pie(x=Product,y=Quantity,orient=undefined,color=null,stack=-) | line(x=Product,y=UnitPrice,orient=undefined,color=null,stack=-) | bar(x=ShippingAddress,y=ItemsInCart,orient=undefined,color=null,stack=-) | matrix(x=PaymentMethod,y=UnitPrice,orient=undefined,color=OrderStatus,stack=-) | multi_row_card(x=PaymentMethod,y=Quantity,orient=undefined,color=undefined,stack=-)
+=== SERVER STARTED on port 3001 at 2026-05-27T22:44:45.484Z ===
+=== /api/build-powerbi HIT ===
+prompt: "Create a multi-row card showing Quantity, UnitPrice, ItemsInCart by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+[MULTI-ROW INJECT] x=PaymentMethod y=Quantity metrics=Quantity,UnitPrice,ItemsInCart tableCols=Quantity,UnitPrice,ItemsInCart
+=== /api/build-powerbi HIT ===
+prompt: "Create a KPI card showing the Average TotalPrice, with a comparison against the median TotalPrice and a secondary indicator for Total Order"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "Create a multi-row card with Total Quantity: SUM(Quantity), Avg UnitPrice: AVG(UnitPrice), Total Items: SUM(ItemsInCart) by PaymentMethod"
+columns: ["OrderID","Quantity","UnitPrice","PaymentMethod","OrderStatus","ItemsInCart","TotalPrice"]
+useGroq: false
+[MULTI-ROW INJECT] x=PaymentMethod y=Quantity metrics=Quantity,UnitPrice,ItemsInCart tableCols=Quantity,UnitPrice,ItemsInCart
+=== SERVER STARTED on port 3001 at 2026-05-27T22:49:44.698Z ===
+=== /api/build-powerbi HIT ===
+prompt: "Create a multi-row card showing Quantity, UnitPrice, ItemsInCart by PaymentMethod"
+columns: ["OrderID","Quantity","UnitPrice","PaymentMethod","OrderStatus","ItemsInCart","TotalPrice"]
+useGroq: false
+[MULTI-ROW INJECT] x=PaymentMethod y=Quantity metrics=Quantity,UnitPrice,ItemsInCart tableCols=Quantity,UnitPrice,ItemsInCart
+=== /api/build-powerbi HIT ===
+prompt: "Create a multi-row card with Total Quantity: SUM(Quantity), Avg UnitPrice: AVG(UnitPrice), Total Items: SUM(ItemsInCart) by PaymentMethod"
+columns: ["OrderID","Quantity","UnitPrice","PaymentMethod","OrderStatus","ItemsInCart"]
+useGroq: false
+[MULTI-ROW INJECT] x=PaymentMethod y=Quantity metrics=Quantity,UnitPrice,ItemsInCart tableCols=Quantity,UnitPrice,ItemsInCart
+=== /api/build-powerbi HIT ===
+prompt: "Create a KPI card showing the Average totalprice, with a comparison against the median totalprice and a secondary indicator for Total count of of order id"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== SERVER STARTED on port 3001 at 2026-05-27T22:52:34.136Z ===
+=== /api/build-powerbi HIT ===
+prompt: "- Create a multi-row card showing Quantity, UnitPrice, ItemsInCart by PaymentMethod\n- Create a matrix table with PaymentMethod as rows and OrderStatus as columns, showing total UnitPrice"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+[multi-line] 2 lines detected — firing parallel Ollama calls
+[multi-line]   [0] Create a multi-row card showing Quantity, UnitPrice, ItemsInCart by PaymentMethod
+[multi-line]   [1] Create a matrix table with PaymentMethod as rows and OrderStatus as columns, showing total UnitPrice
+matrix from Ollama: rows=OrderID, cols=Date, val=Quantity, agg=count
+[MULTI-ROW INJECT] x=PaymentMethod y=Quantity metrics=Quantity,UnitPrice,ItemsInCart tableCols=Quantity,UnitPrice,ItemsInCart
+[multi-line] merged → 2 charts: multi_row_card(x=PaymentMethod,y=Quantity,orient=undefined,color=undefined,stack=-) | matrix(x=PaymentMethod,y=UnitPrice,orient=undefined,color=OrderStatus,stack=-)
+=== SERVER STARTED on port 3001 at 2026-05-27T22:56:25.731Z ===
+=== /api/build-powerbi HIT ===
+prompt: "Create KPI cards for total Quantity, average UnitPrice, total ItemsInCart"
+columns: ["OrderID","Quantity","UnitPrice","PaymentMethod","OrderStatus","ItemsInCart"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "Create KPI cards for total Quantity and a bar chart showing UnitPrice by PaymentMethod"
+columns: ["OrderID","Quantity","UnitPrice","PaymentMethod","OrderStatus","ItemsInCart"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a multi-row card showing Quantity, UnitPrice, ItemsInCart by PaymentMethod\n- Create a matrix table with PaymentMethod as rows and OrderStatus as columns, showing total UnitPrice\n- Create a data table showing PaymentMethod, OrderStatus, Quantity, UnitPrice, ItemsInCart"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+[multi-line] 3 lines detected — firing parallel Ollama calls
+[multi-line]   [0] Create a multi-row card showing Quantity, UnitPrice, ItemsInCart by PaymentMethod
+[multi-line]   [1] Create a matrix table with PaymentMethod as rows and OrderStatus as columns, showing total UnitPrice
+[multi-line]   [2] Create a data table showing PaymentMethod, OrderStatus, Quantity, UnitPrice, ItemsInCart
+[MULTI-ROW INJECT] x=PaymentMethod y=Quantity metrics=Quantity,UnitPrice,ItemsInCart tableCols=Quantity,UnitPrice,ItemsInCart
+matrix from Ollama: rows=OrderID, cols=Date, val=Quantity, agg=count
+[multi-line] merged → 3 charts: multi_row_card(x=PaymentMethod,y=Quantity,orient=undefined,color=undefined,stack=-) | matrix(x=PaymentMethod,y=UnitPrice,orient=undefined,color=OrderStatus,stack=-) | table(x=null,y=null,orient=undefined,color=undefined,stack=-)
+=== /api/build-powerbi HIT ===
+prompt: "- Create KPI cards for total Quantity, average UnitPrice, total ItemsInCart"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "Create a KPI card showing the Average unitprice, with a comparison against the median totalprice and a secondary indicator for Total count of order id"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "Create a KPI card showing the Average Annual Salary, with a comparison against the median salary and a secondary indicator for Total Headcount\nCreate a KPI card showing the Average Annual Salary, with a comparison against the median salary and a secondary indicator for Total Headcount\nCreate a KPI card showing the Average Annual Salary, with a comparison against the median salary and a secondary indicator for Total Headcount\nCreate a KPI card showing the Average Annual Salary, with a comparison against the median salary and a secondary indicator for Total Headcount\n- Create a KPI card showing the Average unitprice, with a comparison against the median totalprice and a secondary indicator for Total count of order id\n- Create a bar chart showing UnitPrice by PaymentMethod\n- Create a horizontal bar chart showing UnitPrice by PaymentMethod\n- Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a stacked column chart showing UnitPrice by PaymentMethod, stacked by OrderStatus\n- Create a 100% stacked column chart showing employee count by PaymentMethod, using OrderStatus in the legend\n- Create a clustered bar chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a stacked bar chart showing UnitPrice by PaymentMethod, stacked by OrderStatus\n- Create a 100% stacked bar chart showing employee count by PaymentMethod, using OrderStatus in the legend\n- Create a line chart showing UnitPrice trend over Date\n- Create an area chart showing UnitPrice trend over Date\n- Create a stacked area chart showing employee count by PaymentMethod, split by OrderStatus\n- Create a combo chart showing UnitPrice and TotalPrice by PaymentMethod\n- Create a line and stacked column chart showing UnitPrice stacked by OrderStatus, with a line for TotalPrice, by PaymentMethod\n- Create a waterfall chart showing the change in UnitPrice across different PaymentMethod\n- Create a funnel chart showing UnitPrice by PaymentMethod\n- Create a bubble chart of UnitPrice vs TotalPrice with bubble size showing Quantity, colored by PaymentMethod\n- Create a pie chart showing UnitPrice by PaymentMethod\n- Create a donut chart showing UnitPrice share by PaymentMethod\n- Create a treemap showing UnitPrice by PaymentMethod and OrderStatus\n- Create a gauge chart for total UnitPrice\n- Create a multi-row card showing Quantity, UnitPrice, ItemsInCart by PaymentMethod\n- Create a matrix table with PaymentMethod as rows and OrderStatus as columns, showing total UnitPrice\n- Create a data table showing PaymentMethod, OrderStatus, Quantity, UnitPrice, ItemsInCart"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+[multi-line] 28 lines detected — firing parallel Ollama calls
+[multi-line]   [0] Create a KPI card showing the Average Annual Salary, with a comparison against the median salary and a secondary indicator for Total Headcount
+[multi-line]   [1] Create a KPI card showing the Average Annual Salary, with a comparison against the median salary and a secondary indicator for Total Headcount
+[multi-line]   [2] Create a KPI card showing the Average Annual Salary, with a comparison against the median salary and a secondary indicator for Total Headcount
+[multi-line]   [3] Create a KPI card showing the Average Annual Salary, with a comparison against the median salary and a secondary indicator for Total Headcount
+[multi-line]   [4] Create a KPI card showing the Average unitprice, with a comparison against the median totalprice and a secondary indicator for Total count of order id
+[multi-line]   [5] Create a bar chart showing UnitPrice by PaymentMethod
+[multi-line]   [6] Create a horizontal bar chart showing UnitPrice by PaymentMethod
+[multi-line]   [7] Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [8] Create a stacked column chart showing UnitPrice by PaymentMethod, stacked by OrderStatus
+[multi-line]   [9] Create a 100% stacked column chart showing employee count by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [10] Create a clustered bar chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [11] Create a stacked bar chart showing UnitPrice by PaymentMethod, stacked by OrderStatus
+[multi-line]   [12] Create a 100% stacked bar chart showing employee count by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [13] Create a line chart showing UnitPrice trend over Date
+[multi-line]   [14] Create an area chart showing UnitPrice trend over Date
+[multi-line]   [15] Create a stacked area chart showing employee count by PaymentMethod, split by OrderStatus
+[multi-line]   [16] Create a combo chart showing UnitPrice and TotalPrice by PaymentMethod
+[multi-line]   [17] Create a line and stacked column chart showing UnitPrice stacked by OrderStatus, with a line for TotalPrice, by PaymentMethod
+[multi-line]   [18] Create a waterfall chart showing the change in UnitPrice across different PaymentMethod
+[multi-line]   [19] Create a funnel chart showing UnitPrice by PaymentMethod
+[multi-line]   [20] Create a bubble chart of UnitPrice vs TotalPrice with bubble size showing Quantity, colored by PaymentMethod
+[multi-line]   [21] Create a pie chart showing UnitPrice by PaymentMethod
+[multi-line]   [22] Create a donut chart showing UnitPrice share by PaymentMethod
+[multi-line]   [23] Create a treemap showing UnitPrice by PaymentMethod and OrderStatus
+[multi-line]   [24] Create a gauge chart for total UnitPrice
+[multi-line]   [25] Create a multi-row card showing Quantity, UnitPrice, ItemsInCart by PaymentMethod
+[multi-line]   [26] Create a matrix table with PaymentMethod as rows and OrderStatus as columns, showing total UnitPrice
+[multi-line]   [27] Create a data table showing PaymentMethod, OrderStatus, Quantity, UnitPrice, ItemsInCart
+[TREEMAP INJECT] cat=PaymentMethod sub=OrderStatus val=UnitPrice agg=sum title="UnitPrice by PaymentMethod & OrderStatus"
+matrix from Ollama: rows=OrderID, cols=Date, val=Quantity, agg=count
+[WATERFALL INJECT] cat=PaymentMethod val=UnitPrice agg=sum
+[MULTI-ROW INJECT] x=PaymentMethod y=Quantity metrics=Quantity,UnitPrice,ItemsInCart tableCols=Quantity,UnitPrice,ItemsInCart
+[multi-line] merged → 23 charts: bar(x=PaymentMethod,y=UnitPrice,orient=v,color=null,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=h,color=null,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=v,color=OrderStatus,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=v,color=OrderStatus,stack=stack) | bar(x=PaymentMethod,y=null,orient=v,color=OrderStatus,stack=percent) | bar(x=PaymentMethod,y=UnitPrice,orient=h,color=OrderStatus,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=h,color=OrderStatus,stack=stack) | bar(x=PaymentMethod,y=null,orient=h,color=OrderStatus,stack=percent) | line(x=Date,y=UnitPrice,orient=undefined,color=null,stack=-) | area(x=Date,y=UnitPrice,orient=undefined,color=null,stack=-) | area(x=PaymentMethod,y=null,orient=undefined,color=OrderStatus,stack=stack) | combo(x=PaymentMethod,y=UnitPrice,orient=undefined,color=undefined,stack=-) | combo(x=PaymentMethod,y=UnitPrice,orient=undefined,color=OrderStatus,stack=stack) | waterfall(x=PaymentMethod,y=UnitPrice,orient=undefined,color=null,stack=-) | funnel(x=PaymentMethod,y=UnitPrice,orient=undefined,color=null,stack=-) | bubble(x=UnitPrice,y=Quantity,orient=undefined,color=null,stack=-) | pie(x=PaymentMethod,y=null,orient=undefined,color=null,stack=-) | donut(x=PaymentMethod,y=null,orient=undefined,color=null,stack=-) | treemap(x=PaymentMethod,y=UnitPrice,orient=undefined,color=OrderStatus,stack=-) | gauge(x=null,y=UnitPrice,orient=undefined,color=null,stack=-) | multi_row_card(x=PaymentMethod,y=Quantity,orient=undefined,color=undefined,stack=-) | matrix(x=PaymentMethod,y=UnitPrice,orient=undefined,color=OrderStatus,stack=-) | table(x=null,y=null,orient=undefined,color=undefined,stack=-)
+=== /api/build-powerbi HIT ===
+prompt: "- Create KPI cards for total Quantity, average UnitPrice, total ItemsInCart\n- Create a bar chart showing UnitPrice by PaymentMethod\n- Create a horizontal bar chart showing UnitPrice by PaymentMethod\n- Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a stacked column chart showing UnitPrice by PaymentMethod, stacked by OrderStatus\n- Create a 100% stacked column chart showing employee count by PaymentMethod, using OrderStatus in the legend\n- Create a clustered bar chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a stacked bar chart showing UnitPrice by PaymentMethod, stacked by OrderStatus\n- Create a 100% stacked bar chart showing employee count by PaymentMethod, using OrderStatus in the legend\n- Create a line chart showing UnitPrice trend over Date\n- Create an area chart showing UnitPrice trend over Date\n- Create a stacked area chart showing employee count by PaymentMethod, split by OrderStatus\n- Create a combo chart showing UnitPrice and TotalPrice by PaymentMethod\n- Create a line and stacked column chart showing UnitPrice stacked by OrderStatus, with a line for TotalPrice, by PaymentMethod\n- Create a waterfall chart showing the change in UnitPrice across different PaymentMethod\n- Create a funnel chart showing UnitPrice by PaymentMethod\n- Create a scatter chart of UnitPrice vs TotalPrice, colored by PaymentMethod\n- Create a bubble chart of UnitPrice vs TotalPrice with bubble size showing Quantity, colored by PaymentMethod\n- Create a pie chart showing UnitPrice by PaymentMethod\n- Create a donut chart showing UnitPrice share by PaymentMethod\n- Create a treemap showing UnitPrice by PaymentMethod and OrderStatus\n- Create a gauge chart for total UnitPrice\n- Create a multi-row card showing Quantity, UnitPrice, ItemsInCart by PaymentMethod\n- Create a matrix table with PaymentMethod as rows and OrderStatus as columns, showing total UnitPrice\n- Create a data table showing PaymentMethod, OrderStatus, Quantity, UnitPrice, ItemsInCart\nAdd filters for Date, Product, PaymentMethod, OrderStatus, CouponCode, ReferralSource"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+[multi-line] 25 lines detected — firing parallel Ollama calls
+[multi-line]   [0] Create KPI cards for total Quantity, average UnitPrice, total ItemsInCart
+[multi-line]   [1] Create a bar chart showing UnitPrice by PaymentMethod
+[multi-line]   [2] Create a horizontal bar chart showing UnitPrice by PaymentMethod
+[multi-line]   [3] Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [4] Create a stacked column chart showing UnitPrice by PaymentMethod, stacked by OrderStatus
+[multi-line]   [5] Create a 100% stacked column chart showing employee count by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [6] Create a clustered bar chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [7] Create a stacked bar chart showing UnitPrice by PaymentMethod, stacked by OrderStatus
+[multi-line]   [8] Create a 100% stacked bar chart showing employee count by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [9] Create a line chart showing UnitPrice trend over Date
+[multi-line]   [10] Create an area chart showing UnitPrice trend over Date
+[multi-line]   [11] Create a stacked area chart showing employee count by PaymentMethod, split by OrderStatus
+[multi-line]   [12] Create a combo chart showing UnitPrice and TotalPrice by PaymentMethod
+[multi-line]   [13] Create a line and stacked column chart showing UnitPrice stacked by OrderStatus, with a line for TotalPrice, by PaymentMethod
+[multi-line]   [14] Create a waterfall chart showing the change in UnitPrice across different PaymentMethod
+[multi-line]   [15] Create a funnel chart showing UnitPrice by PaymentMethod
+[multi-line]   [16] Create a scatter chart of UnitPrice vs TotalPrice, colored by PaymentMethod
+[multi-line]   [17] Create a bubble chart of UnitPrice vs TotalPrice with bubble size showing Quantity, colored by PaymentMethod
+[multi-line]   [18] Create a pie chart showing UnitPrice by PaymentMethod
+[multi-line]   [19] Create a donut chart showing UnitPrice share by PaymentMethod
+[multi-line]   [20] Create a treemap showing UnitPrice by PaymentMethod and OrderStatus
+[multi-line]   [21] Create a gauge chart for total UnitPrice
+[multi-line]   [22] Create a multi-row card showing Quantity, UnitPrice, ItemsInCart by PaymentMethod
+[multi-line]   [23] Create a matrix table with PaymentMethod as rows and OrderStatus as columns, showing total UnitPrice
+[multi-line]   [24] Create a data table showing PaymentMethod, OrderStatus, Quantity, UnitPrice, ItemsInCart
+[MULTI-ROW INJECT] x=PaymentMethod y=Quantity metrics=Quantity,UnitPrice,ItemsInCart tableCols=Quantity,UnitPrice,ItemsInCart
+matrix from Ollama: rows=OrderID, cols=Date, val=Quantity, agg=count
+[WATERFALL INJECT] cat=PaymentMethod val=UnitPrice agg=sum
+[TREEMAP INJECT] cat=PaymentMethod sub=OrderStatus val=UnitPrice agg=sum title="UnitPrice by PaymentMethod & OrderStatus"
+[multi-line] merged → 24 charts: bar(x=PaymentMethod,y=UnitPrice,orient=v,color=null,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=h,color=null,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=v,color=OrderStatus,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=v,color=OrderStatus,stack=stack) | bar(x=PaymentMethod,y=null,orient=v,color=OrderStatus,stack=percent) | bar(x=PaymentMethod,y=UnitPrice,orient=h,color=OrderStatus,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=h,color=OrderStatus,stack=stack) | bar(x=PaymentMethod,y=null,orient=h,color=OrderStatus,stack=percent) | line(x=Date,y=UnitPrice,orient=undefined,color=null,stack=-) | area(x=Date,y=UnitPrice,orient=undefined,color=null,stack=-) | area(x=PaymentMethod,y=null,orient=undefined,color=OrderStatus,stack=stack) | combo(x=PaymentMethod,y=UnitPrice,orient=undefined,color=undefined,stack=-) | combo(x=PaymentMethod,y=UnitPrice,orient=undefined,color=OrderStatus,stack=stack) | waterfall(x=PaymentMethod,y=UnitPrice,orient=undefined,color=null,stack=-) | funnel(x=PaymentMethod,y=UnitPrice,orient=undefined,color=null,stack=-) | scatter(x=Quantity,y=UnitPrice,orient=undefined,color=null,stack=-) | bubble(x=UnitPrice,y=Quantity,orient=undefined,color=null,stack=-) | pie(x=PaymentMethod,y=null,orient=undefined,color=null,stack=-) | donut(x=PaymentMethod,y=null,orient=undefined,color=null,stack=-) | treemap(x=PaymentMethod,y=UnitPrice,orient=undefined,color=OrderStatus,stack=-) | gauge(x=null,y=UnitPrice,orient=undefined,color=null,stack=-) | multi_row_card(x=PaymentMethod,y=Quantity,orient=undefined,color=undefined,stack=-) | matrix(x=PaymentMethod,y=UnitPrice,orient=undefined,color=OrderStatus,stack=-) | table(x=null,y=null,orient=undefined,color=undefined,stack=-)
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice by PaymentMethod"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice by PaymentMethod\n- Create a horizontal bar chart showing UnitPrice by PaymentMethod\n- Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a stacked column chart showing UnitPrice by PaymentMethod, stacked by OrderStatus\n- Create a 100% stacked column chart showing employee count by PaymentMethod, using OrderStatus in the legend\nAdd filters for Date, Product, PaymentMethod, OrderStatus, CouponCode, ReferralSource"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false
+[multi-line] 5 lines detected — firing parallel Ollama calls
+[multi-line]   [0] Create a bar chart showing UnitPrice by PaymentMethod
+[multi-line]   [1] Create a horizontal bar chart showing UnitPrice by PaymentMethod
+[multi-line]   [2] Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend
+[multi-line]   [3] Create a stacked column chart showing UnitPrice by PaymentMethod, stacked by OrderStatus
+[multi-line]   [4] Create a 100% stacked column chart showing employee count by PaymentMethod, using OrderStatus in the legend
+[multi-line] merged → 5 charts: bar(x=PaymentMethod,y=UnitPrice,orient=v,color=null,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=h,color=null,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=v,color=OrderStatus,stack=-) | bar(x=PaymentMethod,y=UnitPrice,orient=v,color=OrderStatus,stack=stack) | bar(x=PaymentMethod,y=null,orient=v,color=OrderStatus,stack=percent)
+=== SERVER STARTED on port 3001 at 2026-05-28T17:28:45.411Z ===
+=== /api/build-powerbi HIT ===
+prompt: "- Create a bar chart showing UnitPrice by PaymentMethod\n- Create a horizontal bar chart showing UnitPrice by PaymentMethod\n- Create a clustered column chart showing UnitPrice by PaymentMethod, using OrderStatus in the legend\n- Create a stacked column chart showing UnitPrice by PaymentMethod, stacked by OrderStatus\n- Create a 100% stacked column chart showing employee count by PaymentMethod, using OrderStatus in the legend\nAdd filters for Date, Product, PaymentMethod, OrderStatus, CouponCode, ReferralSource"
+columns: ["OrderID","Date","CustomerID","Product","Quantity","UnitPrice","ShippingAddress","PaymentMethod","OrderStatus","TrackingNumber","ItemsInCart","CouponCode","ReferralSource","TotalPrice"]
+useGroq: false

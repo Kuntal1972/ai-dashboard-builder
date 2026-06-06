@@ -27,10 +27,11 @@ async function exportAsPBIX() {
     const zip = new JSZip();
 
     zip.file('[Content_Types].xml', _contentTypes());
-    zip.file('Version',             '2.0');
-    zip.file('Metadata',            JSON.stringify({ version: '3.0' }));
-    zip.file('SecurityBindings',    new Uint8Array(0));
-    zip.file('DataModelSchema',     JSON.stringify(_dataModelSchema(cols, colTypes)));
+    zip.file('_rels/.rels',        _rootRels());
+    zip.file('Version',            '2.137.1500.0');
+    zip.file('Metadata',           JSON.stringify({ version: '4.0', createdFrom: 'D', sku: 'Developer', defLocale: 'en-US' }));
+    zip.file('SecurityBindings',   new Uint8Array(0));
+    zip.file('DataModelSchema',    JSON.stringify(_dataModelSchema(cols, colTypes)));
 
     /* Mashup is itself a ZIP (Power Query package) */
     const mzip = new JSZip();
@@ -64,14 +65,21 @@ async function exportAsPBIX() {
 function _contentTypes() {
   return `<?xml version="1.0" encoding="utf-8"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
-  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
-  <Override PartName="/Version" ContentType="application/octet-stream"/>
-  <Override PartName="/Metadata" ContentType="application/octet-stream"/>
-  <Override PartName="/DataModelSchema" ContentType="application/json; charset=utf-8"/>
-  <Override PartName="/Report/Layout" ContentType="application/json; charset=utf-8"/>
-  <Override PartName="/SecurityBindings" ContentType="application/octet-stream"/>
-  <Override PartName="/Mashup" ContentType="application/octet-stream"/>
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />
+  <Override PartName="/DataModelSchema" ContentType="application/json" />
+  <Override PartName="/Report/Layout" ContentType="application/json" />
+  <Override PartName="/Version" ContentType="application/octet-stream" />
+  <Override PartName="/Metadata" ContentType="application/json" />
+  <Override PartName="/SecurityBindings" ContentType="application/octet-stream" />
+  <Override PartName="/Mashup" ContentType="application/octet-stream" />
 </Types>`;
+}
+
+function _rootRels() {
+  return `<?xml version="1.0" encoding="utf-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="/Report/Layout" Id="rId1" />
+</Relationships>`;
 }
 
 function _layoutRels() {

@@ -579,6 +579,8 @@ function applyColumnSelection() {
 
   renderDataPanel('joined_dataset.csv', finalData);
   updateDatasetPill('joined_dataset.csv');
+  const excelBtn = document.getElementById('btn-download-excel');
+  if (excelBtn) excelBtn.disabled = false;
   closeModal('modal-col-select');
   _pendingJoinResult = null;
 

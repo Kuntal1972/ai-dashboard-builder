@@ -1,0 +1,13 @@
+
+=== AI Dashboard Builder ===
+   App:  http://localhost:3001
+   LLM:  Local Ollama — run: ollama serve
+   Tip:  set GROQ_API_KEY for cloud LLM (free at console.groq.com)
+============================
+
+[PowerBI] "Test data 1.csv" via local Ollama
+[ollama-agent] Calling llama3.2:1b for titles…
+[ollama-agent] Columns: Sr. no[number], Employee ID[string], Full Name[string], Job Title[string], Department[string], Business Unit[string], Gender[string], Ethnicity[string], Age[number], Hire Date[date], Annual Salary[number], Bonus %[string], Country[string], City[string], Exit Date[date]
+[ollama-agent] Spec: "Test Data 1 Dashboard" — 3 charts, 4 KPIs
+[ollama-agent] KPIs: Full Name Count[count_distinct:Full Name] | Total Sr. No[count:Sr. no] | Age[sum:Age] | Annual Salary[sum:Annual Salary]
+[ollama-agent] Charts: Sr. No Trend by Hire Date[line x:Hire Date y:Sr. no] | Sr. No Share by Gender[donut x:Gender y:Sr. no] | Sr. No by Country[bar x:Country y:Sr. no]

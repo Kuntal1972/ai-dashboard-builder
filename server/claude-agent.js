@@ -7,9 +7,46 @@ RULES:
 2. All DAX measures must use the exact table_name you define and exact column names from the dataset
 3. DAX format: SUM('TableName'[ColumnName]), DISTINCTCOUNT('TableName'[ColumnName]), AVERAGE(...), etc.
 4. For time intelligence, always check if a date column exists first
-5. Choose appropriate chart types: bar for comparisons, line/area for trends, pie/donut for distributions (<=8 categories)
-6. Always create 3-6 KPI cards with the most important metrics
-7. table_name: use a clean PascalCase version of the file name, e.g. "SalesData"`;
+5. Always create 3-6 KPI cards with the most important metrics
+6. table_name: use a clean PascalCase version of the file name, e.g. "SalesData"
+
+CHART TYPES — use exactly one of these strings:
+  bar, line, area, pie, donut, scatter, bubble, histogram, funnel,
+  waterfall, treemap, combo, table, matrix, multi_row_card, choropleth, scattergeo
+
+NATURAL LANGUAGE → TYPE:
+  "trend / over time / time series / monthly / weekly / daily / by date"   → line or area
+  "distribution / histogram / spread / frequency / frequency range"        → histogram
+  "breakdown / proportion / share / composition / percentage of"           → pie or donut
+  "compare / vs / versus / ranked / side-by-side / by category"            → bar
+  "top N / ranking / highest / lowest / most / least / best / worst"       → bar (orientation h)
+  "metrics card / summary card / workforce metrics / KPIs in rows"         → multi_row_card
+  "scatter / correlation / relationship / x vs y"                          → scatter
+  "bubble / variable size / three variables"                               → bubble
+  "waterfall / bridge chart / variance / increase decrease"                → waterfall
+  "treemap / hierarchy / nested / proportion by area"                      → treemap
+  "combo / bar and line / dual axis / line and column"                     → combo
+  "geographic / choropleth / map / by country / by region / by state"      → choropleth
+  "funnel / conversion / pipeline / stages"                                → funnel
+  "data table / full table / show all columns / raw data"                  → table
+  "matrix / cross-tab / pivot / rows and columns"                          → matrix
+
+MULTI-ROW CARD — use type "multi_row_card" when the user asks for:
+  • "multi-row card", "metrics card", "summary card", "KPI card with multiple metrics"
+  • A list of metrics to display in a card/panel (e.g. "show total employees, avg salary, headcount")
+  Set metrics as an array: [{ label, column, aggregation, format }]
+  Valid aggregations: sum, mean, median, min, max, count, count_distinct
+  Valid formats: number, currency, percent, date
+  Set x_column to null for overall totals, or to a column name to group by that column.
+
+BAR CHART ORIENTATION:
+  - Use orientation "h" (horizontal) for rankings, top-N, "by department/country/category" comparisons
+  - Use orientation "v" (vertical) for time-based categories or when explicitly requested
+
+For "show X by Y" → bar with category_column=Y, measure=X
+For "compare X across Y" → bar with category_column=Y, measure=X`;
+
+
 
 const TOOL = {
   name: 'create_dashboard_spec',
@@ -54,11 +91,40 @@ const TOOL = {
           properties: {
             id: { type: 'string' },
             title: { type: 'string' },
-            type: { type: 'string', enum: ['bar', 'line', 'area', 'pie', 'donut', 'scatter', 'funnel'] },
-            measure_name: { type: 'string', description: 'Must match a name in dax_measures' },
-            category_column: { type: 'string', description: 'Column name for X axis / grouping' },
+            type: {
+              type: 'string',
+              enum: ['bar','line','area','pie','donut','scatter','bubble','histogram',
+                     'funnel','waterfall','treemap','combo','table','matrix',
+                     'multi_row_card','choropleth','scattergeo']
+            },
+            measure_name: { type: 'string', description: 'Must match a name in dax_measures (omit for multi_row_card and table)' },
+            category_column: { type: 'string', description: 'Column name for X axis / grouping / category dimension' },
+            y_column: { type: 'string', description: 'Explicit Y-axis column (numeric). Overrides measure_name resolution when set.' },
+            y2_column: { type: 'string', description: 'Second Y-axis column for combo charts (the line overlay series)' },
+            color_column: { type: 'string', description: 'Categorical column for legend/color grouping (clustered/stacked bar, multi-series line, etc.)' },
+            size_column: { type: 'string', description: 'Numeric column that controls bubble size for bubble charts' },
+            stack_mode: { type: 'string', enum: ['stack','percent'], description: 'For stacked bar/area/combo charts' },
+            orientation: { type: 'string', enum: ['h','v'], description: 'h = horizontal bar, v = vertical (default)' },
             width: { type: 'number', enum: [1, 2], description: '2 = full width' },
-            top_n: { type: 'number', description: 'Limit to top N categories' }
+            top_n: { type: 'number', description: 'Limit to top N categories' },
+            metrics: {
+              type: 'array',
+              description: 'Required for multi_row_card. Each metric is one row in the card.',
+              items: {
+                type: 'object',
+                properties: {
+                  label:       { type: 'string', description: 'Display label for the metric' },
+                  column:      { type: 'string', description: 'Dataset column name' },
+                  aggregation: { type: 'string', enum: ['sum','mean','median','min','max','count','count_distinct'] },
+                  format:      { type: 'string', enum: ['number','currency','percent','date'] }
+                }
+              }
+            },
+            columns: {
+              type: 'array',
+              description: 'For table/matrix: list of column names to display',
+              items: { type: 'string' }
+            }
           }
         }
       },

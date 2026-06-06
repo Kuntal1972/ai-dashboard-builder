@@ -150,6 +150,13 @@ function computeKPI(data, kpi) {
   switch (kpi.aggregation) {
     case 'sum':  return vals.reduce((a, b) => a + b, 0);
     case 'mean': return vals.reduce((a, b) => a + b, 0) / vals.length;
+    case 'median': {
+      const sorted = [...vals].sort((a, b) => a - b);
+      const mid = Math.floor(sorted.length / 2);
+      return sorted.length % 2 !== 0
+        ? sorted[mid]
+        : (sorted[mid - 1] + sorted[mid]) / 2;
+    }
     case 'max':  return Math.max(...vals);
     case 'min':  return Math.min(...vals);
     default:     return vals.reduce((a, b) => a + b, 0);
@@ -173,7 +180,10 @@ function formatKPIValue(v, kpi) {
   // Guard against null / undefined / NaN
   if (v == null || (typeof v === 'number' && isNaN(v))) return '—';
 
-  const pfx = kpi.prefix || '';
+  // For currency, default prefix to '$' if not explicitly set
+  const pfx = kpi.format === 'currency'
+    ? (typeof kpi.prefix === 'string' ? kpi.prefix : '$')
+    : (kpi.prefix || '');
   const sfx = kpi.suffix || '';
 
   if (kpi.format === 'percentage') return `${pfx}${(v * 100).toFixed(2)}%${sfx}`;
