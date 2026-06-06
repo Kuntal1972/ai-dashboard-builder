@@ -5,6 +5,27 @@
  */
 
 /* ════════════════════════════
+   GLOBAL RESIZE HANDLER
+   Single debounced listener — replaces the per-chart listeners that caused
+   accumulating duplicate handlers on every renderDashboard() call.
+   ════════════════════════════ */
+(function _installGlobalResizeHandler() {
+  let _resizeTimer = null;
+  window.addEventListener('resize', function () {
+    clearTimeout(_resizeTimer);
+    _resizeTimer = setTimeout(function () {
+      /* Relayout every active Plotly chart in the grid */
+      const charts = document.querySelectorAll('.plotly-chart');
+      charts.forEach(function (el) {
+        if (el.id && el._fullLayout) {
+          try { Plotly.relayout(el, { autosize: true }); } catch (_) {}
+        }
+      });
+    }, 120);
+  });
+})();
+
+/* ════════════════════════════
    PLOTLY BASE LAYOUT
    ════════════════════════════ */
 
@@ -113,12 +134,6 @@ function renderChart(spec, data) {
     layout.colorway = getColors();
     const traces = buildTraces(spec, data, layout);
     Plotly.newPlot(spec.id, traces, layout, getPlotlyConfig(spec.title));
-
-    // Reflow on window resize
-    window.addEventListener('resize', () => {
-      const e2 = document.getElementById(spec.id);
-      if (e2) Plotly.relayout(e2, { autosize: true });
-    });
   } catch (err) {
     el.innerHTML = `<div class="chart-error">
       ⚠️ Render error: ${err.message}<br>

@@ -483,7 +483,31 @@ function renderDashboard(spec) {
   });
 
   grid.innerHTML = html;
-  validCharts.forEach(c => setTimeout(() => renderChart(c, data), 40));
+
+  /* ── Staggered chart rendering ───────────────────────────────────────
+     All charts at the same timeout causes Plotly to read zero/wrong
+     container dimensions before the CSS grid has settled.
+     Staggering by 55 ms per chart lets each container fully lay out
+     before Plotly measures it.
+     After all charts finish, a final relayout pass fixes any remaining
+     size mismatches (e.g. wide cards that shifted the grid).
+  ──────────────────────────────────────────────────────────────────── */
+  const STAGGER_MS   = 55;   // gap between successive chart renders
+  const INITIAL_MS   = 60;   // first render starts after DOM settles
+
+  validCharts.forEach((c, idx) => {
+    setTimeout(() => renderChart(c, data), INITIAL_MS + idx * STAGGER_MS);
+  });
+
+  /* Final relayout pass — runs after every chart has had a chance to render */
+  const finalMs = INITIAL_MS + validCharts.length * STAGGER_MS + 250;
+  setTimeout(() => {
+    document.querySelectorAll('.plotly-chart').forEach(el => {
+      if (el._fullLayout) {
+        try { Plotly.relayout(el, { autosize: true }); } catch (_) {}
+      }
+    });
+  }, finalMs);
 
   renderFilterBar(spec);
   renderSlicers(spec);
@@ -722,12 +746,18 @@ function _refreshChartsAfterFilter() {
         btn.classList.toggle('active', v === '__all__' ? selected.size === 0 : selected.has(v));
       });
     } else {
-      /* Re-render chart content with fresh filtered data */
+      /* Re-render chart content with fresh filtered data — stagger to avoid
+         simultaneous Plotly.newPlot calls competing for container dimensions */
       const el = document.getElementById(c.id);
       if (!el) return;
       try { if (typeof Plotly !== 'undefined') Plotly.purge(c.id); } catch (_) {}
-      setTimeout(() => renderChart(c, data), 0);
     }
+  });
+
+  /* Stagger filter re-renders the same way as initial render */
+  const nonSlicers = (spec.charts || []).filter(c => c.type !== 'slicer');
+  nonSlicers.forEach((c, idx) => {
+    setTimeout(() => renderChart(c, data), idx * 40);
   });
 
   renderFilterBar(spec);

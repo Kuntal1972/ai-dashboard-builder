@@ -319,7 +319,7 @@ header{display:flex;align-items:center;gap:8px;padding:0 18px;height:50px;backgr
 .fb-reset:hover{border-color:var(--red);color:var(--red)}
 .row-count{font-size:11px;color:var(--mut);flex-shrink:0}
 
-.charts-grid{padding:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:14px;align-content:start}
+.charts-grid{padding:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:14px;align-content:start;grid-auto-rows:380px}
 
 .kpi-row{grid-column:1/-1;display:flex;gap:10px;flex-wrap:wrap;align-self:start}
 .kpi-card{flex:1;min-width:130px;background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:10px 14px;transition:border-color .15s}
@@ -329,18 +329,20 @@ header{display:flex;align-items:center;gap:8px;padding:0 18px;height:50px;backgr
 .kpi-sub{font-size:11px;color:var(--mut);margin-top:5px;padding-top:5px;border-top:1px solid var(--bd)}
 .kpi-sub strong{color:var(--txt);font-weight:600}
 
-.chart-card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);display:flex;flex-direction:column;overflow:hidden;transition:border-color .15s,box-shadow .15s;min-height:380px}
+.chart-card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);display:flex;flex-direction:column;overflow:hidden;transition:border-color .15s,box-shadow .15s;min-height:380px;contain:layout}
 .chart-card:hover{border-color:rgba(0,120,212,.4);box-shadow:0 4px 16px rgba(0,0,0,.3)}
 .chart-card.wide{grid-column:span 2}
 .chart-card.full{grid-column:1/-1}
 .chart-hdr{padding:12px 14px 4px;display:flex;align-items:center;gap:6px;flex-shrink:0}
 .chart-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--mut)}
 .chart-title::before{content:'● ';color:#10b981;font-size:10px}
-.chart-body{flex:1;position:relative;min-height:320px}
+/* chart-body: explicit height so Plotly can measure the container before rendering */
+.chart-body{flex:1;position:relative;min-height:320px;height:320px}
 .plotly-chart{position:absolute;inset:0;width:100%!important;height:100%!important}
-.chart-card.sankey-card{min-height:560px}.chart-card.sankey-card .chart-body{min-height:500px}
-.chart-card.table-card{min-height:auto;overflow:visible}
-.chart-card.table-card .chart-body{min-height:auto;position:relative;overflow:visible}
+.chart-card.wide{grid-row:span 1}
+.chart-card.sankey-card{min-height:560px;grid-row:span 2}.chart-card.sankey-card .chart-body{min-height:500px;height:500px}
+.chart-card.table-card{min-height:auto;overflow:visible;grid-row:auto}
+.chart-card.table-card .chart-body{min-height:auto;height:auto;position:relative;overflow:visible}
 .chart-card.table-card .plotly-chart{position:relative!important;inset:auto!important;height:auto!important;width:100%!important;overflow:auto;max-height:460px}
 .dt-wrap{display:flex;flex-direction:column}
 .dt-table{width:100%;border-collapse:collapse;font-size:12px}
@@ -359,8 +361,8 @@ header{display:flex;align-items:center;gap:8px;padding:0 18px;height:50px;backgr
 .matrix-table tr.matrix-totals-row td{background:rgba(124,58,237,.08);border-top:2px solid var(--acc)}
 
 /* Button Slicer card */
-.slicer-card{min-height:auto!important}
-.slicer-card .chart-body{min-height:auto!important}
+.slicer-card{min-height:auto!important;grid-row:auto}
+.slicer-card .chart-body{min-height:auto!important;height:auto!important}
 .slicer-card .plotly-chart{position:relative!important;inset:auto!important;height:auto!important;width:100%!important;overflow:visible}
 .slicer-btn-wrap{display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px 14px}
 .slicer-btn{padding:5px 14px;border-radius:4px;border:1px solid var(--bd);background:var(--s2);color:var(--mut);font-size:12px;font-weight:500;cursor:pointer;transition:background .12s,color .12s,border-color .12s;white-space:nowrap;line-height:1.5}
