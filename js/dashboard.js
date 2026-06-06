@@ -357,6 +357,22 @@ function renderDashboard(spec) {
   const grid   = document.getElementById('charts-grid');
   const colSet = new Set(AppState.columns);
 
+  /* ── Pre-calculate exact pixel dimensions matching the CSS grid ──────
+     Measure the grid container BEFORE touching innerHTML so we get the
+     stable, already-painted width.  We replicate the CSS formula for
+     repeat(auto-fill, minmax(420px, 1fr)) with gap:14px exactly.
+     These pixel values are baked into data-w/data-h attributes on every
+     .plotly-chart div so renderChart never needs to measure anything.
+  ────────────────────────────────────────────────────────────────────── */
+  const _PADDING  = 28;   // padding:14px on each side of .charts-grid
+  const _GAP      = 14;
+  const _MIN_COL  = 420;
+  const _CHART_H  = 340;
+  const _gridW    = (grid.clientWidth || 900) - _PADDING;
+  const _numCols  = Math.max(1, Math.floor((_gridW + _GAP) / (_MIN_COL + _GAP)));
+  const _colW     = Math.max(300, Math.floor((_gridW - (_numCols - 1) * _GAP) / _numCols));
+  const _wideW    = _gridW;
+
   const hint = document.getElementById('ready-hint');
   if (hint) hint.style.display = 'none';
 
@@ -495,12 +511,19 @@ function renderDashboard(spec) {
     const isTableLike  = ['table', 'matrix', 'multi_row_card'].includes(c.type);
     const isSlicerCard = c.type === 'slicer';
     const isSankeyCard = c.type === 'sankey';
-    html += `<div class="chart-card${c.width === 2 ? ' wide' : ''}${isTableLike ? ' table-card' : ''}${isSlicerCard ? ' slicer-card' : ''}${isSankeyCard ? ' sankey-card' : ''}" id="card-${c.id}">
+    const isWide       = c.width === 2;
+
+    /* Bake exact pixel width into a data attribute so renderChart
+       reads pre-calculated values, never measures at render time */
+    const pxW = isWide ? _wideW : _colW;
+    const pxH = isSankeyCard ? 520 : isTableLike || isSlicerCard ? 0 : _CHART_H;
+
+    html += `<div class="chart-card${isWide ? ' wide' : ''}${isTableLike ? ' table-card' : ''}${isSlicerCard ? ' slicer-card' : ''}${isSankeyCard ? ' sankey-card' : ''}" id="card-${c.id}">
       <div class="chart-hdr">
         <span class="chart-title">${c.title}</span>
         <span class="dbg-info" title="${dbgText}">${dbgText}</span>
       </div>
-      <div class="chart-body"><div class="plotly-chart" id="${c.id}"></div></div>
+      <div class="chart-body"><div class="plotly-chart" id="${c.id}" data-pw="${pxW}" data-ph="${pxH}"></div></div>
     </div>`;
   });
 
@@ -512,19 +535,13 @@ function renderDashboard(spec) {
   grid.innerHTML = html;
 
   /* ── Sequential async rendering ─────────────────────────────────────
-     We await each Plotly.newPlot() before starting the next chart.
-     This guarantees:
-       1. The browser has finished painting the previous chart's container
-          before we read offsetWidth for the next one.
-       2. Plotly never has two simultaneous newPlot calls competing for
-          the same layout-flush, which was the root cause of distortion.
-       3. Each chart gets its own isolated execution context.
+     Dimensions come from pre-baked data-pw/data-ph attributes, so no
+     timing or layout measurement is needed before each call.
+     We still render sequentially (await each Plotly.newPlot Promise)
+     to avoid simultaneous DOM mutations and memory spikes.
   ────────────────────────────────────────────────────────────────────── */
   (async () => {
     for (const c of validChartsWithUID) {
-      /* One rAF per chart — lets the browser settle the container's
-         display:block width before we call offsetWidth inside renderChart */
-      await new Promise(resolve => requestAnimationFrame(resolve));
       await renderChart(c, data);
     }
   })();
@@ -778,7 +795,6 @@ function _refreshChartsAfterFilter() {
   const nonSlicers = (spec.charts || []).filter(c => c.type !== 'slicer');
   (async () => {
     for (const c of nonSlicers) {
-      await new Promise(resolve => requestAnimationFrame(resolve));
       await renderChart(c, data);
     }
   })();

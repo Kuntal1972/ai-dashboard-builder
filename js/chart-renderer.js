@@ -14,16 +14,24 @@
   window.addEventListener('resize', function () {
     clearTimeout(_resizeTimer);
     _resizeTimer = setTimeout(function () {
-      /* Re-measure each chart's container and relayout with new pixel dimensions */
+      /* On window resize, re-measure the grid and relayout all charts */
+      var grid = document.getElementById('charts-grid');
+      if (!grid) return;
+      var PAD = 28, GAP = 14, MIN_COL = 420;
+      var gw   = (grid.clientWidth || 900) - PAD;
+      var cols = Math.max(1, Math.floor((gw + GAP) / (MIN_COL + GAP)));
+      var colW = Math.max(300, Math.floor((gw - (cols - 1) * GAP) / cols));
+
       document.querySelectorAll('.plotly-chart').forEach(function (el) {
         if (!el.id || !el._fullLayout) return;
         try {
-          const w = el.offsetWidth;
-          const h = el.offsetHeight || 340;
-          if (w > 10) Plotly.relayout(el, { width: w, height: h });
+          var isWide = el.closest('.chart-card') && el.closest('.chart-card').classList.contains('wide');
+          var w = isWide ? gw : colW;
+          var h = parseInt(el.dataset.ph, 10) || 340;
+          if (w > 10 && h > 10) Plotly.relayout(el, { width: w, height: h });
         } catch (_) {}
       });
-    }, 150);
+    }, 200);
   });
 })();
 
@@ -127,12 +135,14 @@ function renderChart(spec, data) {
     const layout = getBaseLayout();
     layout.colorway = getColors();
 
-    /* Explicit pixel dimensions — offsetWidth is always correct here because
-       the element is a display:block child of a fixed-height .chart-body */
-    const chartW = el.offsetWidth  || el.parentElement?.offsetWidth  || 600;
-    const chartH = el.offsetHeight || 340;
-    layout.width    = chartW;
-    layout.height   = chartH;
+    /* Read pre-calculated pixel dimensions from data attributes.
+       These were computed in renderDashboard() from the grid's actual
+       clientWidth BEFORE innerHTML, so they are always correct — no
+       CSS measurement at render time, no layout-timing dependency. */
+    const chartW = parseInt(el.dataset.pw, 10) || el.offsetWidth  || 600;
+    const chartH = parseInt(el.dataset.ph, 10) || el.offsetHeight || 340;
+    layout.width    = Math.max(200, chartW);
+    layout.height   = Math.max(200, chartH);
     layout.autosize = false;
 
     const traces = buildTraces(spec, data, layout);
