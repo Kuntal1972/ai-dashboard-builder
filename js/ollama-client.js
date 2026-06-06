@@ -83,7 +83,7 @@ async function callOllamaFromBrowser(columns, colTypes, csvData, userPrompt) {
         ],
         stream:  false,
         format:  'json',
-        options: { temperature: 0.1, num_predict: 2048 }
+        options: { temperature: 0.1, num_predict: 4096 }
       })
     });
   } catch (err) {

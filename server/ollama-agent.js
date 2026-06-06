@@ -2585,9 +2585,11 @@ function buildDaxMeasures(kpis, charts, tableName) {
 function extractJson(text) {
   const s = text.trim().replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/```\s*$/,'');
   let pos = 0;
+  let firstIdx = -1;
   while (pos < s.length) {
     const idx = s.indexOf('{', pos);
     if (idx === -1) break;
+    if (firstIdx === -1) firstIdx = idx;
     let depth = 0, inStr = false, esc = false, end = -1;
     for (let i = idx; i < s.length; i++) {
       const c = s[i];
@@ -2605,6 +2607,20 @@ function extractJson(text) {
       } catch (_) {}
     }
     pos = idx + 1;
+  }
+  // Truncated JSON recovery: if num_predict cut the output mid-stream, attempt to close open brackets
+  if (firstIdx !== -1) {
+    try {
+      let fragment = s.slice(firstIdx);
+      // Strip any trailing incomplete string or key
+      fragment = fragment.replace(/,?\s*"[^"]*$/, '').replace(/,\s*$/, '');
+      // Close any open arrays then the root object
+      const opens = (fragment.match(/\[/g) || []).length - (fragment.match(/\]/g) || []).length;
+      const objs  = (fragment.match(/\{/g) || []).length - (fragment.match(/\}/g) || []).length;
+      fragment += ']'.repeat(Math.max(0, opens)) + '}'.repeat(Math.max(0, objs));
+      const parsed = JSON.parse(fragment);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return parsed;
+    } catch (_) {}
   }
   return null;
 }
@@ -3308,7 +3324,7 @@ async function buildDashboardWithOllama(csvData, columns, colTypes, prompt, file
     ],
     stream: true,
     format: 'json',
-    options: { temperature: 0.1, num_predict: 512, num_ctx: 2048 }
+    options: { temperature: 0.1, num_predict: 4096, num_ctx: 4096 }
   });
 
   const responseText = await httpPost(ollamaUrl, '/api/chat', payload);
