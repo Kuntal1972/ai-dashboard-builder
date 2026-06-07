@@ -461,7 +461,9 @@ function addAllChartsToPrompt() {
     // Special charts
     'sankey chart',
     'gantt chart',
-    'bullet chart'
+    'bullet chart',
+    'box and whisker plot',
+    'marimekko chart'
   ];
 
   const ta = document.getElementById('prompt-input');

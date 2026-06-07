@@ -41,6 +41,150 @@ function _extractTableColumnsFromPrompt(prompt) {
   return matched.length >= 1 ? matched : AppState.columns.slice(0, 10);
 }
 
+function _injectBoxIfRequested(spec, prompt) {
+  if (!/\bbox\s*(?:and\s*)?whisker\b|\bbox\s*plot\b|\bbox\s*chart\b|\bwhisker\b/i.test(prompt)) return;
+  if (spec.charts?.some(c => c.type === 'box')) return;
+
+  // If Claude returned a bar/line/area with a box-whisker title, fix its type in-place.
+  // This prevents a duplicate chart — we correct the existing one instead of appending.
+  const wrongTypeBox = spec.charts?.find(c =>
+    c.type !== 'box' && /box\s*(?:and\s*)?whisker|whisker\s*plot|box\s*plot|box\s*chart/i.test(c.title || '')
+  );
+  if (wrongTypeBox) {
+    wrongTypeBox.type = 'box';
+    wrongTypeBox.aggregation = 'none';
+    return; // _postProcessAdvancedCharts will fix columns from the prompt
+  }
+
+  const cols     = AppState.columns || [];
+  const colTypes = AppState.colTypes || {};
+  const numCols  = cols.filter(c => colTypes[c] === 'number');
+  if (!numCols.length) return;
+
+  const catCols = cols.filter(c => colTypes[c] !== 'number');
+
+  // Resolve y_column from prompt — split camelCase and match individual words
+  const splitCol = name => name.replace(/([a-z])([A-Z])/g, '$1 $2')
+                               .replace(/[_\-]/g, ' ')
+                               .toLowerCase()
+                               .split(/\s+/)
+                               .filter(w => w.length > 2);
+
+  const pLower = (prompt || '').toLowerCase();
+  let yCol = null;
+  for (const c of numCols) {
+    if (splitCol(c).some(w => pLower.includes(w))) { yCol = c; break; }
+  }
+  if (!yCol) yCol = numCols.find(c => !/\b(id|no|num|number|serial|rank|index|row|sr)\b/i.test(c)) || numCols[0];
+
+  // Resolve x_column (grouping categorical) from "by <dimension>"
+  let xCol = null;
+  const byMatch = prompt.match(/\bby\s+([\w][\w\s]{1,30}?)(?:[,;.]|\s+and\b|\s*$)/i);
+  if (byMatch) {
+    const hint = byMatch[1].trim().toLowerCase();
+    xCol = cols.find(c => c.toLowerCase() === hint)
+        || catCols.find(c => c.toLowerCase().includes(hint) || hint.includes(c.toLowerCase()))
+        || catCols.find(c => splitCol(c).some(w => hint.includes(w)))
+        || null;
+  }
+  if (!xCol) xCol = catCols[0] || null;
+
+  // Always push at end — preserve user-specified chart order
+  const charts = spec.charts || (spec.charts = []);
+  charts.push({
+    id: `inj_box_${Date.now()}`,
+    title: xCol ? `${yCol} Distribution by ${xCol}` : `${yCol} Distribution`,
+    type: 'box', x_column: xCol, y_column: yCol, y2_column: null,
+    color_column: null, size_column: null, stack_mode: null,
+    aggregation: 'none', orientation: 'v', sort_by: 'none', sort_order: 'asc',
+    top_n: null, width: xCol ? 2 : 1
+  });
+}
+
+function _injectMarimekkoIfRequested(spec, prompt) {
+  if (!/\bmarimekko\b|\bmekko\b|\bmosaic\s+chart\b/i.test(prompt)) return;
+
+  // Fix any chart that has a marimekko title but wrong type — prevents duplicates
+  const wrongType = spec.charts?.find(c =>
+    c.type !== 'marimekko' && /marimekko|mekko|mosaic/i.test(c.title || '')
+  );
+  if (wrongType) { wrongType.type = 'marimekko'; wrongType.width = 2; return; }
+
+  if (spec.charts?.some(c => c.type === 'marimekko')) return;
+
+  const cols     = AppState.columns || [];
+  const colTypes = AppState.colTypes || {};
+  const numCols  = cols.filter(c => colTypes[c] === 'number');
+
+  // Filter categorical columns: exclude ID-like and high-cardinality columns
+  const sample     = (AppState.rawData || []).slice(0, 500);
+  const uniq       = col => new Set(sample.map(r => r[col]).filter(v => v != null && v !== '')).size;
+  const isIdLike   = col => /\b(id|key|code|ref|uuid|no\b|num\b|number\b|serial|index|row)\b/i.test(col);
+  const allCats    = cols.filter(c => colTypes[c] !== 'number');
+  const goodCats   = allCats.filter(c => !isIdLike(c) && uniq(c) >= 2 && uniq(c) <= 25);
+  const usableCats = goodCats.length >= 2 ? goodCats
+                   : allCats.filter(c => !isIdLike(c)).slice(0, 6);
+  if (usableCats.length < 1) return;
+
+  const splitName = name => name.replace(/([a-z])([A-Z])/g, '$1 $2')
+                                .replace(/[_\-]/g, ' ').toLowerCase()
+                                .split(/\s+/).filter(w => w.length > 2);
+
+  // Strip parenthetical notes — "(column widths)", "(segments)" etc. break regex matching
+  const pLower  = (prompt || '').toLowerCase();
+  const marimKeyIdx = pLower.search(/\bmarimekko\b|\bmekko\b|\bmosaic\b/);
+  const marimSlice  = marimKeyIdx >= 0 ? prompt.slice(marimKeyIdx, marimKeyIdx + 200) : prompt;
+  const marimClean  = marimSlice.replace(/\([^)]*\)/g, ' ').replace(/\s{2,}/g, ' ');
+
+  const matchCat = (hint, exclude) => {
+    if (!hint) return null;
+    const h = hint.trim().toLowerCase().replace(/\s+/g, '');
+    return usableCats.find(c => c !== exclude && c.toLowerCase().replace(/\s+/g, '') === h)
+        || usableCats.find(c => c !== exclude && c.toLowerCase().replace(/\s+/g, '').includes(h))
+        || usableCats.find(c => c !== exclude && h.includes(c.toLowerCase().replace(/\s+/g, '')))
+        || usableCats.find(c => c !== exclude && splitName(c).some(w => h.includes(w) || w.includes(h)));
+  };
+
+  // Resolve x_column and color_column from "by X and Y" in the cleaned clause
+  let xCol = null, colorCol = null;
+  const byAndMatch = marimClean.match(/\bby\s+([\w][\w\s]{1,30}?)\s+and\s+([\w][\w\s]{1,30}?)(?:[,;.]|\s*$)/i);
+  if (byAndMatch) {
+    xCol     = matchCat(byAndMatch[1], null);
+    colorCol = matchCat(byAndMatch[2], xCol);
+  }
+  // Supplement: scan clause for column names mentioned near the marimekko keyword
+  if (!xCol || !colorCol) {
+    const clauseLower = marimClean.toLowerCase();
+    const mentioned = usableCats.filter(c => splitName(c).some(w => w.length > 2 && clauseLower.includes(w)));
+    if (!xCol     && mentioned[0]) xCol     = mentioned[0];
+    if (!colorCol && mentioned.find(c => c !== xCol)) colorCol = mentioned.find(c => c !== xCol);
+  }
+  if (!xCol)     xCol     = usableCats[0];
+  if (!colorCol) colorCol = usableCats.find(c => c !== xCol) || null;
+  if (!colorCol) return;
+
+  // y_column from prompt
+  let yCol = null, agg = 'count';
+  for (const c of numCols) {
+    if (splitName(c).some(w => pLower.includes(w))) { yCol = c; agg = 'sum'; break; }
+  }
+  if (!yCol && numCols.length) { yCol = numCols[0]; agg = 'sum'; }
+
+  const charts = spec.charts || (spec.charts = []);
+  // Replace first bar chart if present (LLM returned wrong type), else push at end
+  const barIdx = charts.findIndex(c => c.type === 'bar');
+  const entry = {
+    id: barIdx !== -1 ? charts[barIdx].id : `inj_marimekko_${Date.now()}`,
+    title: `${yCol || 'Count'} by ${xCol} and ${colorCol} (Marimekko)`,
+    type: 'marimekko', x_column: xCol, y_column: yCol, color_column: colorCol,
+    y2_column: null, size_column: null, stack_mode: null,
+    aggregation: agg, orientation: 'v', sort_by: 'none', sort_order: 'desc',
+    top_n: null, width: 2
+  };
+  if (barIdx !== -1) charts[barIdx] = entry;
+  else charts.push(entry);
+}
+
 function _injectTableIfRequested(spec, prompt) {
   if (!/\bdata\s*table\b|\btable\s*(?:chart|visual|view)?\b|\bmatrix\b/i.test((prompt || '').toLowerCase())) return;
   if (spec.charts?.some(c => c.type === 'table')) return;
@@ -115,6 +259,12 @@ function _postProcessAdvancedCharts(spec, prompt = '') {
   const catCols  = cols.filter(c => colTypes[c] !== 'number' && colTypes[c] !== 'date');
   const numCols  = cols.filter(c => colTypes[c] === 'number');
 
+  // Helpers for Marimekko column filtering (computed once, reused per chart)
+  const _sample   = (AppState.rawData || []).slice(0, 500);
+  const _uniq     = col => new Set(_sample.map(r => r[col]).filter(v => v != null && v !== '')).size;
+  const _isIdLike = col => /\b(id|key|code|ref|uuid|no\b|num\b|number\b|serial|index|row)\b/i.test(col);
+  const _goodMarimCats = catCols.filter(c => !_isIdLike(c) && _uniq(c) >= 2 && _uniq(c) <= 25);
+
   spec.charts.forEach(c => {
     /* Normalise type strings Claude might output with wrong casing / spacing */
     if (/multi.?row.?card/i.test(c.type))  c.type = 'multi_row_card';
@@ -140,33 +290,162 @@ function _postProcessAdvancedCharts(spec, prompt = '') {
     /* Fix: box plot — y_column must be numeric, aggregation must be "none" */
     if (c.type === 'box') {
       c.aggregation = 'none';
-      // y_column must be numeric (the values to distribute)
+
+      // Split camelCase + underscores → individual lowercase words for fuzzy matching
+      const splitName = name => name.replace(/([a-z])([A-Z])/g, '$1 $2')
+                                    .replace(/[_\-]/g, ' ').toLowerCase()
+                                    .split(/\s+/).filter(w => w.length > 2);
+
+      // Extract only the box-specific clause from the prompt so words from OTHER
+      // chart requests (e.g. "quantity by category" earlier in prompt) don't pollute matching.
+      // Patterns: "distribution of X", "box.*of X", "whisker.*of X", "X by Y" after box keyword
+      const boxClauseMatch = prompt.match(
+        /(?:box(?:\s+and\s+whisker)?(?:\s+plot)?|whisker\s+plot)\s+(?:showing\s+)?(?:the\s+)?(?:distribution\s+of\s+)?([\w\s]{1,40}?)(?:\s+by\s+[\w\s]{1,30})?(?:[,;.]|$)/i
+      ) || prompt.match(/distribution\s+of\s+([\w\s]{1,40}?)\s+by\s+/i);
+
+      const boxClause = boxClauseMatch ? boxClauseMatch[1].trim().toLowerCase() : '';
+
+      // If we isolated a specific column mention, do an exact/substring match first
+      let resolvedY = null;
+      if (boxClause) {
+        resolvedY = numCols.find(col => col.toLowerCase() === boxClause)
+                 || numCols.find(col => {
+                      const colLower = col.toLowerCase();
+                      const clauseWords = boxClause.split(/\s+/).filter(w => w.length > 2);
+                      return colLower === boxClause
+                          || boxClause.includes(colLower)
+                          || colLower.includes(boxClause)
+                          || splitName(col).some(w => clauseWords.includes(w));
+                    });
+      }
+
+      // Fallback: scan entire prompt but require the column word to appear ADJACENT to
+      // box/whisker/distribution keywords (within ±60 chars) to avoid false matches
+      if (!resolvedY) {
+        const pLower = prompt.toLowerCase();
+        const boxKeyIdx = pLower.search(/\bbox\b|\bwhisker\b|\bdistribution\b/);
+        const vicinity = boxKeyIdx >= 0 ? pLower.slice(Math.max(0, boxKeyIdx - 10), boxKeyIdx + 80) : pLower;
+        resolvedY = numCols.find(col => splitName(col).some(w => vicinity.includes(w)));
+      }
+
+      if (resolvedY) c.y_column = resolvedY;
+
+      // Final guard: y_column must exist and be numeric
       if (!c.y_column || colTypes[c.y_column] !== 'number') {
         c.y_column = numCols[0] || null;
       }
-      // x_column should be categorical (the grouping dimension), not numeric
+
+      // Resolve x_column from "by <dimension>" in the box-specific clause
+      const byPromptMatch = prompt.match(/\bbox[\s\S]{0,80}?\bby\s+([\w][\w\s]{1,30}?)(?:[,;.]|\s+and\b|\s*$)/i)
+                         || prompt.match(/\bby\s+([\w][\w\s]{1,30}?)(?:[,;.]|\s+and\b|\s*$)/i);
+      if (byPromptMatch) {
+        const hint = byPromptMatch[1].trim().toLowerCase();
+        const catFromPrompt = catCols.find(col => col.toLowerCase() === hint)
+                           || catCols.find(col => col.toLowerCase().includes(hint) || hint.includes(col.toLowerCase()))
+                           || catCols.find(col => splitName(col).some(w => hint.includes(w)));
+        if (catFromPrompt) c.x_column = catFromPrompt;
+      }
+      // x_column must be categorical — if numeric, replace
       if (c.x_column && colTypes[c.x_column] === 'number') {
         c.x_column = catCols[0] || null;
       }
+      c.width = c.x_column ? 2 : 1;
+      // Rebuild title to reflect the resolved columns
+      c.title = c.x_column
+        ? `${c.y_column} Distribution by ${c.x_column}`
+        : `${c.y_column} Distribution`;
     }
 
-    /* Fix: marimekko — ensure x_column (category), color_column (segment), y_column (numeric or null) */
+    /* Fix: marimekko — resolve columns from prompt first, then validate */
     if (c.type === 'marimekko') {
       c.width = 2;
-      // x_column must be categorical
-      if (!c.x_column || colTypes[c.x_column] === 'number') {
-        c.x_column = catCols[0] || cols[0] || null;
+
+      const splitName = name => name.replace(/([a-z])([A-Z])/g, '$1 $2')
+                                    .replace(/[_\-]/g, ' ').toLowerCase()
+                                    .split(/\s+/).filter(w => w.length > 2);
+
+      const marimekCats = _goodMarimCats.length >= 2 ? _goodMarimCats
+                        : catCols.filter(col => !_isIdLike(col)).slice(0, 5);
+
+      // ── Step 1: resolve from prompt (ground truth) ──
+      // Narrow to the marimekko-specific substring to avoid pollution from other chart lines.
+      const pLower = prompt.toLowerCase();
+      const marimKeyIdx = pLower.search(/\bmarimekko\b|\bmekko\b|\bmosaic\b/);
+      const marimSlice = marimKeyIdx >= 0
+        ? prompt.slice(marimKeyIdx, marimKeyIdx + 200)
+        : prompt;
+
+      // Strip parenthetical notes like "(column widths)" and "(segments)" that
+      // break regex — e.g. "by PaymentMethod (column widths) and OrderStatus (segments)"
+      const marimClean = marimSlice.replace(/\([^)]*\)/g, ' ').replace(/\s{2,}/g, ' ');
+
+      const matchCol = (hint, exclude) => {
+        if (!hint) return null;
+        const h = hint.trim().toLowerCase().replace(/\s+/g, '');
+        // 1. Exact match (case-insensitive, spaces collapsed)
+        const exactMatch = cols.find(col => col.toLowerCase().replace(/\s+/g, '') === h && col !== exclude);
+        if (exactMatch) return exactMatch;
+        // 2. Substring match within marimekCats
+        return marimekCats.find(col => col !== exclude && col.toLowerCase().replace(/\s+/g, '').includes(h))
+            || marimekCats.find(col => col !== exclude && h.includes(col.toLowerCase().replace(/\s+/g, '')))
+            || marimekCats.find(col => col !== exclude && splitName(col).some(w => h.includes(w) || w.includes(h)));
+      };
+
+      // Pattern 1: "by X and Y" in the cleaned marimekko clause
+      // Score every non-numeric non-ID column by how many of its name-words
+      // appear in the cleaned marimekko clause. Top scorers are the intended columns.
+      const clauseLower = marimClean.toLowerCase();
+      const genericWords = new Set(['chart','show','create','make','build','add','plot',
+        'visual','using','with','the','and','for','by','of','in','a','marimekko','mekko',
+        'mosaic','column','widths','segments','showing','segment','width']);
+
+      const scored = cols
+        .filter(col => colTypes[col] !== 'number' && !_isIdLike(col))
+        .map(col => {
+          const words = splitName(col).filter(w => !genericWords.has(w));
+          const score = words.filter(w => clauseLower.includes(w)).length;
+          return { col, score };
+        })
+        .filter(({ score }) => score > 0)
+        .sort((a, b) => b.score - a.score);
+
+      // Pattern 1: explicit "by X and Y" in cleaned clause
+      const byAndM = marimClean.match(
+        /\bby\s+([\w][\w\s]{1,30}?)\s+and\s+([\w][\w\s]{1,30}?)(?:[,;.]|\s*$)/i
+      );
+      if (byAndM) {
+        const fromX = matchCol(byAndM[1], null);
+        const fromC = matchCol(byAndM[2], fromX);
+        if (fromX) c.x_column     = fromX;
+        if (fromC) c.color_column = fromC;
       }
-      // color_column must be a different categorical column
+
+      // Pattern 2: use scored column list — fills any gap left by Pattern 1
+      // Prompt-named columns always win; scored list fills gaps only.
+      if (!c.x_column && scored[0]) c.x_column = scored[0].col;
+      if (!c.color_column) {
+        const candidate = scored.find(({ col }) => col !== c.x_column);
+        if (candidate) c.color_column = candidate.col;
+      }
+
+      // ── Fallback only (when prompt gave no usable column names) ──
+      // Do NOT apply cardinality checks to prompt-resolved columns — trust the user.
+      if (!c.x_column || colTypes[c.x_column] === 'number' || _isIdLike(c.x_column)) {
+        c.x_column = marimekCats[0] || catCols.find(col => !_isIdLike(col)) || null;
+      }
       if (!c.color_column || colTypes[c.color_column] === 'number' || c.color_column === c.x_column) {
-        c.color_column = catCols.find(col => col !== c.x_column) || null;
+        c.color_column = marimekCats.find(col => col !== c.x_column)
+                      || catCols.find(col => !_isIdLike(col) && col !== c.x_column)
+                      || null;
       }
       // y_column: null for count, or a numeric column
       if (c.aggregation === 'count') {
         c.y_column = null;
-      } else if (c.y_column && colTypes[c.y_column] !== 'number') {
+      } else if (!c.y_column || colTypes[c.y_column] !== 'number') {
         c.y_column = numCols[0] || null;
       }
+      // Rebuild title from resolved columns
+      c.title = `${c.y_column || 'Count'} by ${c.x_column} and ${c.color_column} (Marimekko)`;
     }
 
     /* Fix: histogram must have aggregation="none" and numeric x_column */
@@ -868,6 +1147,8 @@ ${prompt}`;
     const raw  = await callClaude(AppState.conversation);
     AppState.conversation.push({ role: 'assistant', content: raw });
     const spec = extractSpec(raw);
+    _injectBoxIfRequested(spec, prompt);
+    _injectMarimekkoIfRequested(spec, prompt);
     _injectTableIfRequested(spec, prompt);
     _injectSlicersIfRequested(spec, prompt);
     _postProcessAdvancedCharts(spec, prompt);
@@ -904,6 +1185,8 @@ async function refineDashboard() {
     const raw  = await callClaude(AppState.conversation);
     AppState.conversation.push({ role: 'assistant', content: raw });
     const spec = extractSpec(raw);
+    _injectBoxIfRequested(spec, prompt);
+    _injectMarimekkoIfRequested(spec, prompt);
     _injectTableIfRequested(spec, prompt);
     _injectSlicersIfRequested(spec, prompt);
     _postProcessAdvancedCharts(spec, prompt);
@@ -972,6 +1255,8 @@ async function _buildPowerBI() {
     const spec = result.spec;
     console.info('[PBI raw spec] kpi_cards:', JSON.stringify(spec.kpi_cards));
     const previewSpec = convertPbiSpecToPreview(spec, prompt);
+    _injectBoxIfRequested(previewSpec, prompt);
+    _injectMarimekkoIfRequested(previewSpec, prompt);
     _injectTableIfRequested(previewSpec, prompt);
     _postProcessAdvancedCharts(previewSpec, prompt);   // fix axes, size_column, geo cols, etc.
 

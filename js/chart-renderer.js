@@ -178,7 +178,7 @@ function buildTraces(spec, data, layout) {
     case 'scatter':    return buildScatterTraces(spec, data);
     case 'bubble':     return buildBubbleTraces(spec, data, layout);
     case 'histogram':  return buildHistogramTraces(spec, data, layout);
-    case 'box':        return buildBoxTraces(spec, data);
+    case 'box':        return buildBoxTraces(spec, data, layout);
     case 'marimekko':  return buildMarimekkoTraces(spec, data, layout);
     case 'heatmap':    return buildHeatmapTraces(spec, data, layout);
     case 'icicle':     return buildIcicleTraces(spec, data, layout);
@@ -431,6 +431,13 @@ function buildGanttTraces(spec, data, layout) {
         customdata,
         marker:     { color: barColors, opacity: 0.85 },
         hovertemplate: '<b>%{y}</b><br>Start: %{customdata[0]}<br>End: %{customdata[1]}<br>Duration: %{customdata[2]} days<extra></extra>',
+        text:        customdata.map(d => `${d[2]}d`),
+        textposition: 'auto',
+        insidetextanchor: 'middle',
+        constraintext: 'none',
+        textfont:    { color: '#fff', size: 10 },
+        outsidetextfont: { color: '#e2e8f0', size: 10 },
+        cliponaxis:  false,
         showlegend: false
       }];
     }
@@ -539,20 +546,28 @@ function buildBulletTraces(spec, data, layout) {
       x: cats.map(() => maxVal * 0.8), y: cats,
       marker: { color: 'rgba(255,255,255,0.10)' },
       showlegend: false, hoverinfo: 'skip', name: '' },
-    // Actual value bar (narrow, bold)
+    // Actual value bar (narrow, bold) — with data label outside
     { type: 'bar', orientation: 'h',
       x: actuals, y: cats,
       name: actualCol || 'Actual',
       marker: { color: colors[0], opacity: 0.95 },
+      text: actuals.map(v => shortNumber(v)),
+      textposition: 'outside',
+      constraintext: 'none',
+      cliponaxis: false,
+      textfont: { color: '#e2e8f0', size: 11 },
       hovertemplate: `<b>%{y}</b><br>${actualCol || 'Actual'}: %{x:,.2f}<extra></extra>` }
   ];
 
-  // Target markers as diamond scatter
+  // Target markers — show target value as text label
   if (targets.some(t => t != null)) {
     traces.push({
-      type: 'scatter', mode: 'markers',
+      type: 'scatter', mode: 'markers+text',
       x: targets, y: cats,
       name: targetCol || 'Target',
+      text: targets.map(t => t != null ? shortNumber(t) : ''),
+      textposition: 'top center',
+      textfont: { color: '#f59e0b', size: 10 },
       marker: { color: '#f59e0b', symbol: 'line-ew-open', size: 18, line: { color: '#f59e0b', width: 3 } },
       hovertemplate: `<b>%{y}</b><br>${targetCol || 'Target'}: %{x:,.2f}<extra></extra>`
     });
@@ -946,9 +961,12 @@ function buildScatterTraces(spec, data) {
     return cats.map((cat, i) => {
       const sub = data.filter(r => r[spec.color_column] === cat);
       return {
-        type: 'scatter', mode: 'markers', name: String(cat),
+        type: 'scatter', mode: 'markers+text', name: String(cat),
         x: sub.map(r => r[spec.x_column]),
         y: sub.map(r => Number(r[spec.y_column])),
+        text: sub.map(r => shortNumber(Number(r[spec.y_column]))),
+        textposition: 'top center',
+        textfont: { color: '#e2e8f0', size: 9 },
         marker: { size: 8, color: colors[i % colors.length], opacity: 0.75,
                   line: { width: 0.5, color: 'rgba(255,255,255,0.2)' } }
       };
@@ -956,9 +974,12 @@ function buildScatterTraces(spec, data) {
   }
 
   return [{
-    type: 'scatter', mode: 'markers',
+    type: 'scatter', mode: 'markers+text',
     x: data.map(r => r[spec.x_column]),
     y: data.map(r => Number(r[spec.y_column])),
+    text: data.map(r => shortNumber(Number(r[spec.y_column]))),
+    textposition: 'top center',
+    textfont: { color: '#e2e8f0', size: 9 },
     marker: { size: 8, color: colors[0], opacity: 0.75 }
   }];
 }
@@ -977,24 +998,64 @@ function buildHistogramTraces(spec, data, layout) {
 }
 
 /* ── Box Plot ── */
-function buildBoxTraces(spec, data) {
+function buildBoxTraces(spec, data, layout) {
   const colors = getColors();
 
-  if (spec.x_column && spec.y_column) {
-    const cats = [...new Set(data.map(r => r[spec.x_column]))];
-    return cats.map((cat, i) => ({
-      type: 'box', name: String(cat),
-      y: data.filter(r => r[spec.x_column] === cat).map(r => Number(r[spec.y_column])),
-      marker: { color: colors[i % colors.length] },
-      line:   { color: colors[i % colors.length] },
-      boxmean: true
-    }));
+  // x-axis carries category labels — remove numeric tickformat so they render as strings
+  if (layout) {
+    layout.xaxis = { ...(layout.xaxis || {}), tickformat: '' };
+    layout.yaxis = { ...(layout.yaxis || {}), tickformat: ',.2f' };
   }
 
+  // Shared box style — shows mean line, outlier points, and stat annotations
+  const boxStyle = {
+    boxmean: 'sd',           // draws mean line + ±1 SD notch
+    boxpoints: 'outliers',   // show individual outlier points
+    jitter: 0.3,
+    pointpos: 0
+  };
+
+  // Stat annotation: overlay Min / Q1 / Median / Q3 / Max as text on the plot
+  const statLabel = (vals) => {
+    if (!vals.length) return '';
+    const sorted = [...vals].sort((a, b) => a - b);
+    const q = p => sorted[Math.floor(p * (sorted.length - 1))];
+    return [
+      `Min: ${shortNumber(q(0))}`,
+      `Q1: ${shortNumber(q(0.25))}`,
+      `Med: ${shortNumber(q(0.5))}`,
+      `Q3: ${shortNumber(q(0.75))}`,
+      `Max: ${shortNumber(q(1))}`
+    ].join('<br>');
+  };
+
+  if (spec.x_column && spec.y_column) {
+    const cats = [...new Set(data.map(r => r[spec.x_column]))].filter(v => v != null);
+    if (!cats.length) return [];
+    return cats.map((cat, i) => {
+      const vals = data.filter(r => r[spec.x_column] === cat)
+                       .map(r => Number(r[spec.y_column])).filter(n => !isNaN(n));
+      return {
+        ...boxStyle,
+        type: 'box', name: String(cat),
+        y: vals,
+        hovertemplate: `<b>${cat}</b><br>${statLabel(vals)}<extra></extra>`,
+        marker: { color: colors[i % colors.length], size: 4, opacity: 0.6 },
+        line:   { color: colors[i % colors.length] },
+        fillcolor: hexToRgba(colors[i % colors.length], 0.3)
+      };
+    });
+  }
+
+  if (!spec.y_column) return [];
+  const allVals = data.map(r => Number(r[spec.y_column])).filter(n => !isNaN(n));
   return [{
+    ...boxStyle,
     type: 'box', name: spec.y_column,
-    y: data.map(r => Number(r[spec.y_column])).filter(n => !isNaN(n)),
-    marker: { color: colors[0] }, boxmean: true
+    y: allVals,
+    hovertemplate: `<b>${spec.y_column}</b><br>${statLabel(allVals)}<extra></extra>`,
+    marker: { color: colors[0], size: 4, opacity: 0.6 },
+    fillcolor: hexToRgba(colors[0], 0.3)
   }];
 }
 
@@ -1007,69 +1068,109 @@ function buildMarimekkoTraces(spec, data, layout) {
 
   if (!xCol) return buildBarLineAreaTraces({ ...spec, type: 'bar' }, data, layout);
 
-  // Aggregate: grid[xCat][colorCat] = sum of valCol (or count)
-  const xOrder = [], xSeen = {}, colorOrder = [], colorSeen = {};
-  const grid = {}, totByX = {};
+  // ── Step 1: Aggregate ──────────────────────────────────────────────────────
+  const grid = {}, totByX = {}, totByColor = {};
 
   data.forEach(r => {
-    const xv = String(r[xCol] ?? ''); if (!xv) return;
-    const cv = colorCol ? String(r[colorCol] ?? '') : 'Total';
-    const n  = valCol ? Number(r[valCol]) : 1;
-    if (!xSeen[xv])    { xSeen[xv] = true;    xOrder.push(xv); }
-    if (!colorSeen[cv]){ colorSeen[cv] = true; colorOrder.push(cv); }
+    const xv  = String(r[xCol]     ?? '').trim(); if (!xv) return;
+    const cv  = colorCol ? String(r[colorCol] ?? '').trim() : 'All';
+    const raw = valCol ? Number(r[valCol]) : 1;
+    const n   = isNaN(raw) ? 1 : Math.abs(raw);     // use abs to avoid negative widths
     if (!grid[xv]) grid[xv] = {};
-    grid[xv][cv]   = (grid[xv][cv]   || 0) + (isNaN(n) ? 1 : n);
-    totByX[xv]     = (totByX[xv]     || 0) + (isNaN(n) ? 1 : n);
+    grid[xv][cv]   = (grid[xv][cv]   || 0) + n;
+    totByX[xv]     = (totByX[xv]     || 0) + n;
+    totByColor[cv] = (totByColor[cv] || 0) + n;
   });
 
-  const grand = Object.values(totByX).reduce((a, b) => a + b, 0) || 1;
+  if (!Object.keys(totByX).length) {
+    layout.annotations = [{ text: 'No data', showarrow: false,
+      font: { color: '#94a3b8', size: 14 }, xref: 'paper', yref: 'paper', x: 0.5, y: 0.5 }];
+    return [{ type: 'scatter', x: [], y: [], showlegend: false }];
+  }
 
-  // Column positions (x axis = cumulative % of grand total)
+  // ── Step 2: Sort and cap ───────────────────────────────────────────────────
+  // x-columns sorted by total desc, max 10 (keeps columns wide enough to read)
+  const xOrder     = Object.keys(totByX).sort((a, b) => totByX[b] - totByX[a]).slice(0, 10);
+  // segments sorted by total desc, max 8
+  const colorOrder = Object.keys(totByColor).sort((a, b) => totByColor[b] - totByColor[a]).slice(0, 8);
+
+  const grand = xOrder.reduce((s, xv) => s + totByX[xv], 0) || 1;
+
+  // ── Step 3: Column positions in 0–100 space ────────────────────────────────
+  // Use fractional positions; MUST set xaxis.type:'linear' so Plotly keeps them numeric
   const xInfo = {};
-  let cumX = 0;
+  let cum = 0;
   xOrder.forEach(xv => {
-    const share = (totByX[xv] || 0) / grand * 100;
-    xInfo[xv] = { center: cumX + share / 2, width: share };
-    cumX += share;
+    const w = totByX[xv] / grand * 100;
+    xInfo[xv] = { center: cum + w / 2, width: w * 0.98 }; // 0.98 = small gap between columns
+    cum += w;
   });
 
-  // Build one bar trace per color category; manually stack via `base`
-  const cumHeights = {}; // track stacked height per xCat
-  xOrder.forEach(xv => { cumHeights[xv] = 0; });
+  // ── Step 4: Build one bar trace per segment ────────────────────────────────
+  // barmode:'overlay' + explicit `base` array = manual stacking
+  // xaxis.type:'linear' (set below) prevents Plotly from treating numeric x as categories
+  const cumH = {};
+  xOrder.forEach(xv => { cumH[xv] = 0; });
 
   const traces = colorOrder.map((cv, ci) => {
-    const xs = [], ys = [], bases = [], ws = [], texts = [];
+    const xs = [], ys = [], bases = [], ws = [], htexts = [];
+
     xOrder.forEach(xv => {
-      const xTotal = totByX[xv] || 1;
-      const cellV  = (grid[xv] && grid[xv][cv]) || 0;
-      const pct    = cellV / xTotal * 100;
+      const cellV = (grid[xv] && grid[xv][cv]) || 0;
+      const pct   = cellV / (totByX[xv] || 1) * 100;
       xs.push(xInfo[xv].center);
-      ys.push(pct);
-      bases.push(cumHeights[xv]);
-      ws.push(Math.max(0.2, xInfo[xv].width * 0.97));
-      texts.push(`<b>${xv}</b><br>${cv}: ${shortNumber(cellV)} (${pct.toFixed(1)}%)`);
-      cumHeights[xv] += pct;
+      ys.push(Math.max(pct, 0));
+      bases.push(cumH[xv]);
+      ws.push(xInfo[xv].width);
+      htexts.push(
+        `<b>${xv}</b> → <b>${cv}</b><br>` +
+        `Value: ${shortNumber(cellV)}<br>` +
+        `Share within column: ${pct.toFixed(1)}%<br>` +
+        `Column width: ${(totByX[xv] / grand * 100).toFixed(1)}% of total`
+      );
+      cumH[xv] += pct;
     });
+
     return {
-      type: 'bar', name: cv, x: xs, y: ys, base: bases, width: ws,
-      text: texts, hoverinfo: 'text', textposition: 'inside',
+      type: 'bar',
+      name: cv,
+      x: xs, y: ys,
+      base: bases,
+      width: ws,
+      text: htexts,
+      hoverinfo: 'text',
+      textposition: 'inside',
+      insidetextanchor: 'middle',
       textfont: { size: 9, color: '#fff' },
-      marker: { color: colors[ci % colors.length], line: { color: '#0f0f1a', width: 0.6 } }
+      marker: {
+        color: colors[ci % colors.length],
+        line: { color: '#0f0f1a', width: 0.8 }
+      }
     };
   });
 
-  // Custom x-axis tick labels showing category name + share %
-  layout.xaxis = {
-    tickvals: xOrder.map(xv => xInfo[xv].center),
-    ticktext: xOrder.map(xv => `${xv} (${((totByX[xv]||0)/grand*100).toFixed(1)}%)`),
-    gridcolor: '#2e2e50', tickfont: { color: '#94a3b8', size: 10 },
-    range: [0, 100], showgrid: false
-  };
-  layout.yaxis  = { title: 'Share %', range: [0, 105], gridcolor: '#2e2e50',
-                    tickfont: { color: '#94a3b8', size: 11 }, ticksuffix: '%' };
-  layout.barmode = 'overlay';
+  // ── Step 5: Layout ─────────────────────────────────────────────────────────
+  layout.barmode    = 'overlay';   // each trace draws independently; base handles stacking
   layout.showlegend = true;
-  layout.margin  = { t: 10, b: 80, l: 60, r: 20 };
+  layout.margin     = { t: 20, b: 90, l: 60, r: 20 };
+
+  layout.xaxis = {
+    type: 'linear',                // CRITICAL: prevents categorical-axis misdetection
+    tickmode: 'array',
+    tickvals: xOrder.map(xv => xInfo[xv].center),
+    ticktext: xOrder.map(xv => `${xv}<br>${(totByX[xv] / grand * 100).toFixed(1)}%`),
+    range: [-1, 101],              // tiny padding so edge bars aren't clipped
+    showgrid: false,
+    zeroline: false,
+    tickfont: { color: '#94a3b8', size: 10 }
+  };
+  layout.yaxis = {
+    range: [0, 105],
+    ticksuffix: '%',
+    title: { text: 'Segment share within column', font: { color: '#94a3b8', size: 11 } },
+    gridcolor: '#2e2e50',
+    tickfont: { color: '#94a3b8', size: 11 }
+  };
 
   return traces;
 }
@@ -1146,7 +1247,9 @@ function buildHeatmapTraces(spec, data, layout) {
     colorscale: getColorScale(spec.color_scheme || 'YlOrRd'),
     hoverongaps: false,
     hovertemplate: `<b>%{x}</b> × <b>%{y}</b><br>${zLabel}: <b>%{z:,.0f}</b>${cappedNote}<extra></extra>`,
-    showscale: true
+    showscale: true,
+    texttemplate: '%{z:,.0f}',
+    textfont: { color: '#ffffff', size: 10 }
   }];
 }
 
@@ -1849,6 +1952,9 @@ function buildComboTraces(spec, data, layout) {
         type: 'bar', name: String(cat),
         x: entries.map(e => e.x),
         y: entries.map(e => e.y),
+        text: entries.map(e => shortNumber(e.y)),
+        textposition: 'inside', insidetextanchor: 'middle',
+        textfont: { color: '#fff', size: 9 },
         marker: { color: colors[i % colors.length], opacity: 0.85 }
       });
     });
@@ -1863,6 +1969,9 @@ function buildComboTraces(spec, data, layout) {
       type: 'bar', name: spec.y_column || 'Count',
       x: barEntries.map(e => e.x),
       y: barEntries.map(e => e.y),
+      text: barEntries.map(e => shortNumber(e.y)),
+      textposition: 'outside', cliponaxis: false,
+      textfont: { color: '#e2e8f0', size: 10 },
       marker: { color: colors[0], opacity: 0.82 }
     });
   }
@@ -1870,9 +1979,6 @@ function buildComboTraces(spec, data, layout) {
   /* ── Line series on secondary y-axis ── */
   const lineCol = spec.y2_column;
   if (lineCol && AppState.colTypes?.[lineCol] === 'number') {
-    /* Same column on both axes → mean avoids double-summing.
-       Bars are row-counting (count agg) → use sum for the line so a numeric y2 column
-       (e.g. Annual Salary) shows a real total rather than a row-count that mirrors the bars. */
     const lineAgg = (lineCol === spec.y_column) ? 'mean'
                   : (spec.aggregation === 'count') ? 'sum'
                   : (spec.aggregation || 'sum');
@@ -1881,9 +1987,12 @@ function buildComboTraces(spec, data, layout) {
       : aggregateData(data, spec.x_column, lineCol, lineAgg);
     const lineColor = colors[traces.length % colors.length];
     traces.push({
-      type: 'scatter', mode: 'lines+markers', name: lineCol,
+      type: 'scatter', mode: 'lines+markers+text', name: lineCol,
       x: lineEntries.map(e => e.x),
       y: lineEntries.map(e => e.y),
+      text: lineEntries.map(e => shortNumber(e.y)),
+      textposition: 'top center',
+      textfont: { color: '#e2e8f0', size: 9 },
       yaxis: 'y2',
       line:   { color: lineColor, width: 2.5 },
       marker: { size: 6, color: lineColor }
@@ -1964,6 +2073,7 @@ function buildBarLineAreaTraces(spec, data, layout) {
       const t = { type: plotType, name: String(cat), marker: { color: colors[i % colors.length] } };
       applyOrientation(t, entries, spec);
       applyLineAreaStyle(t, spec.type, colors[i % colors.length], i, spec.stack_mode);
+      applyDataLabels(t, entries, spec);
       traces.push(t);
     });
     if (spec.type === 'bar') {
@@ -1999,13 +2109,7 @@ function buildBarLineAreaTraces(spec, data, layout) {
     const t = { type: plotType, marker: { color: barColor, opacity: 0.88 } };
     applyOrientation(t, entries, spec);
     applyLineAreaStyle(t, spec.type, colors[0], 0, spec.stack_mode);
-
-    if (spec.show_values) {
-      t.text         = entries.map(e => shortNumber(e.y));
-      t.textposition = 'outside';
-      t.textfont     = { color: '#e2e8f0', size: 10 };
-    }
-
+    applyDataLabels(t, entries, spec);
     traces.push(t);
   }
 
@@ -2013,6 +2117,40 @@ function buildBarLineAreaTraces(spec, data, layout) {
 }
 
 /* ── Helpers ── */
+
+/**
+ * Attach data labels to bar / line / area traces.
+ * - Bar (vertical):   value above bar, outside
+ * - Bar (horizontal): value to right of bar, outside
+ * - Stacked bar:      value inside segment (auto)
+ * - Line / area:      value above each point
+ */
+function applyDataLabels(trace, entries, spec) {
+  const isLine = spec.type === 'line' || spec.type === 'area';
+  const isStacked = spec.stack_mode === 'stack' || spec.stack_mode === 'percent';
+  const isHorizontal = spec.orientation === 'h';
+
+  if (isLine) {
+    // Lines already show markers; add text above each marker
+    trace.mode = 'lines+markers+text';
+    trace.text = entries.map(e => shortNumber(e.y));
+    trace.textposition = 'top center';
+    trace.textfont = { color: '#e2e8f0', size: 9 };
+    return;
+  }
+
+  if (trace.type === 'bar') {
+    trace.text = entries.map(e => shortNumber(isHorizontal ? e.y : e.y));
+    trace.textfont = { color: '#e2e8f0', size: 10 };
+    if (isStacked) {
+      trace.textposition = 'inside';
+      trace.insidetextanchor = 'middle';
+    } else {
+      trace.textposition = isHorizontal ? 'outside' : 'outside';
+      trace.cliponaxis = false;
+    }
+  }
+}
 
 function applyOrientation(trace, entries, spec) {
   if (spec.orientation === 'h') {

@@ -2073,6 +2073,121 @@ function _injectHistogramIfRequested(charts, prompt, columns, colTypes) {
 }
 
 /* ═══════════════════════════════════════════════
+   BOX AND WHISKER PLOT INJECTION
+   Fires when prompt asks for box/whisker but the LLM
+   returned a bar or other chart type instead.
+═══════════════════════════════════════════════ */
+
+function _injectBoxIfRequested(charts, prompt, columns, colTypes) {
+  if (!/\bbox\s*(?:and\s*)?whisker\b|\bbox\s*plot\b|\bbox\s*chart\b|\bwhisker\b/i.test(prompt)) return;
+  if (charts.find(c => c.type === 'box')) return; // already present
+
+  const numCols = columns.filter(c => colTypes[c] === 'number');
+  if (!numCols.length) return;
+
+  const goodX = _goodXCols(columns, colTypes);
+
+  // Split camelCase + underscores for fuzzy matching
+  const splitCol = name => name.replace(/([a-z])([A-Z])/g, '$1 $2')
+                               .replace(/[_\-]/g, ' ').toLowerCase()
+                               .split(/\s+/).filter(w => w.length > 2);
+
+  // Resolve y_column (the distribution — numeric) — camelCase-aware
+  let yCol = null;
+  const pLower = prompt.toLowerCase();
+  for (const c of numCols) {
+    if (splitCol(c).some(w => pLower.includes(w))) { yCol = c; break; }
+  }
+  if (!yCol) yCol = numCols.find(c => !/\b(id|no|num|number|serial|rank|index|row|sr)\b/i.test(c)) || numCols[0];
+
+  // Resolve x_column (grouping / categorical) from "by <dimension>" — camelCase-aware
+  let xCol = null;
+  const byMatch = prompt.match(/\bby\s+([\w][\w\s]{1,30}?)(?:[,;.]|\s+and\b|\s*$)/i);
+  if (byMatch) {
+    const hint = byMatch[1].trim().toLowerCase();
+    xCol = goodX.find(c => c.toLowerCase() === hint)
+        || goodX.find(c => c.toLowerCase().includes(hint) || hint.includes(c.toLowerCase()))
+        || goodX.find(c => splitCol(c).some(w => hint.includes(w)))
+        || null;
+  }
+  if (!xCol) xCol = goodX[0] || null;
+
+  const title = xCol ? `${yCol} Distribution by ${xCol}` : `${yCol} Distribution`;
+  const box = {
+    id: `box${charts.length + 1}`, title, type: 'box',
+    x_column: xCol, y_column: yCol, aggregation: 'none',
+    width: xCol ? 2 : 1, sort_by: 'none', sort_order: 'asc', top_n: null,
+    _y_column: yCol, _category_column: xCol, _aggregation: 'none'
+  };
+
+  // Always push at the end to preserve user-specified chart order
+  charts.push(box);
+}
+
+/* ═══════════════════════════════════════════════
+   MARIMEKKO / MEKKO / MOSAIC CHART INJECTION
+   Fires when prompt asks for marimekko but LLM
+   returned a bar or other chart type instead.
+═══════════════════════════════════════════════ */
+
+function _injectMarimekkoIfRequested(charts, prompt, columns, colTypes) {
+  if (!/\bmarimekko\b|\bmekko\b|\bmosaic\s+chart\b/i.test(prompt)) return;
+
+  // Fix any existing chart that has a marimekko title but wrong type
+  const wrongType = charts.find(c =>
+    c.type !== 'marimekko' && /marimekko|mekko|mosaic/i.test(c.title || '')
+  );
+  if (wrongType) { wrongType.type = 'marimekko'; wrongType.width = 2; return; }
+
+  if (charts.find(c => c.type === 'marimekko')) return; // already present
+
+  const goodX   = _goodXCols(columns, colTypes);
+  const numCols = columns.filter(c => colTypes[c] === 'number');
+  if (goodX.length < 2) return; // need at least 2 categorical columns
+
+  const splitCol = name => name.replace(/([a-z])([A-Z])/g, '$1 $2')
+                               .replace(/[_\-]/g, ' ').toLowerCase()
+                               .split(/\s+/).filter(w => w.length > 2);
+
+  // Resolve x_column (column widths) and color_column (segments) from "by X and Y" pattern
+  const pLower = prompt.toLowerCase();
+  let xCol = null, colorCol = null;
+
+  const byAndMatch = prompt.match(/\bby\s+([\w][\w\s]{1,30}?)\s+and\s+([\w][\w\s]{1,30}?)(?:[,;.(]|\s*$)/i);
+  if (byAndMatch) {
+    const h1 = byAndMatch[1].trim().toLowerCase();
+    const h2 = byAndMatch[2].trim().toLowerCase();
+    xCol     = goodX.find(c => c.toLowerCase() === h1)
+            || goodX.find(c => c.toLowerCase().includes(h1) || h1.includes(c.toLowerCase()));
+    colorCol = goodX.find(c => c !== xCol && (c.toLowerCase() === h2 || c.toLowerCase().includes(h2) || h2.includes(c.toLowerCase())));
+  }
+
+  // Fallback: first two good categorical columns
+  if (!xCol)     xCol     = goodX[0];
+  if (!colorCol) colorCol = goodX.find(c => c !== xCol) || goodX[1] || null;
+
+  // y_column: numeric (sum) or null (count)
+  let yCol = null, agg = 'count';
+  for (const c of numCols) {
+    if (splitCol(c).some(w => pLower.includes(w))) { yCol = c; agg = 'sum'; break; }
+  }
+  if (!yCol && numCols.length) { yCol = numCols[0]; agg = 'sum'; }
+
+  const title = `${yCol || 'Count'} by ${xCol} and ${colorCol} (Marimekko)`;
+  const spec = {
+    id: `marimekko${charts.length + 1}`, title, type: 'marimekko',
+    x_column: xCol, y_column: yCol, color_column: colorCol,
+    aggregation: agg, width: 2, sort_by: 'none', sort_order: 'desc', top_n: null,
+    _y_column: yCol, _category_column: xCol, _aggregation: agg
+  };
+
+  // Replace the first bar chart the LLM generated, or push at end
+  const barIdx = charts.findIndex(c => c.type === 'bar');
+  if (barIdx !== -1) { spec.id = charts[barIdx].id; charts[barIdx] = spec; }
+  else charts.push(spec);
+}
+
+/* ═══════════════════════════════════════════════
    GAUGE / KPI INDICATOR INJECTION
    Handles: "gauge chart", "KPI visual", "speedometer",
    "indicator chart", "KPI gauge showing X"
@@ -3118,6 +3233,7 @@ function _detectChartType(line) {
   if (/\bhierarchy\s*tree\b|\borg\s*chart\b|\bicicle\b/i.test(line)) return 'icicle';
   if (/\bhierarchy\b/i.test(line)) return 'icicle';
   if (/\bslicer\b/i.test(line)) return 'slicer';
+  if (/\bbox\s*(?:and\s*)?whisker\b|\bbox\s*plot\b|\bbox\s*chart\b|\bwhisker\b/i.test(line)) return 'box';
   return 'bar';
 }
 
@@ -3164,6 +3280,32 @@ function _buildMultiLineSpec(promptLines, fullPrompt, columns, colTypes, csvData
        fires and skips column resolution → null x/y → renderer falls back to bar.
        Instead we pass an EMPTY array so injection creates a fully-wired spec.
     ── */
+    if (type === 'box') {
+      const lineCharts = [];
+      _injectBoxIfRequested(lineCharts, line, columns, colTypes);
+      if (!lineCharts.length) continue;
+      lineCharts[0].id = `c${idx}`;
+      charts.push(...lineCharts);
+      const lf = _extractFiltersFromPrompt(line, columns, colTypes) || [];
+      for (const f of lf) {
+        if (f?.column && !seenF.has(f.column)) { seenF.add(f.column); filters.push(f); }
+      }
+      continue;
+    }
+
+    if (type === 'marimekko') {
+      const lineCharts = [];
+      _injectMarimekkoIfRequested(lineCharts, line, columns, colTypes);
+      if (!lineCharts.length) continue;
+      lineCharts[0].id = `c${idx}`;
+      charts.push(...lineCharts);
+      const lf = _extractFiltersFromPrompt(line, columns, colTypes) || [];
+      for (const f of lf) {
+        if (f?.column && !seenF.has(f.column)) { seenF.add(f.column); filters.push(f); }
+      }
+      continue;
+    }
+
     if (type === 'sankey' || type === 'gantt' || type === 'bullet' ||
         type === 'heatmap' || type === 'sunburst') {
       const lineCharts = [];
@@ -3216,6 +3358,8 @@ function _buildMultiLineSpec(promptLines, fullPrompt, columns, colTypes, csvData
     _injectTreemapIfRequested(lineCharts, line, columns, colTypes);
     _injectIcicleIfRequested(lineCharts, line, columns, colTypes);
     _injectHistogramIfRequested(lineCharts, line, columns, colTypes);
+    _injectBoxIfRequested(lineCharts, line, columns, colTypes);
+    _injectMarimekkoIfRequested(lineCharts, line, columns, colTypes);
     _injectGaugeIfRequested(lineCharts, line, columns, colTypes);
     _injectMultiRowCardIfRequested(lineCharts, line, columns, colTypes);
     _injectBarChartIfRequested(lineCharts, line, columns, colTypes);
@@ -3260,9 +3404,33 @@ function _buildMultiLineSpec(promptLines, fullPrompt, columns, colTypes, csvData
         c.x_column = _dateCols[0];
     });
   }
-  // Histogram sanity
+  // Histogram / box sanity
   charts.forEach(c => {
     if (c.type === 'histogram') { c.aggregation = 'none'; c.y_column = null; }
+    if (c.type === 'box') {
+      c.aggregation = 'none';
+      // y_column must be numeric (the distribution values)
+      const numCols = columns.filter(col => colTypes[col] === 'number');
+      if (!c.y_column || colTypes[c.y_column] !== 'number') {
+        c.y_column = numCols[0] || null;
+      }
+      // x_column (grouping) must be categorical — if it's numeric, clear it
+      if (c.x_column && colTypes[c.x_column] === 'number') {
+        const goodX = _goodXCols(columns, colTypes);
+        c.x_column = goodX[0] || null;
+      }
+      c.width = c.x_column ? 2 : 1;
+    }
+    if (c.type === 'marimekko') {
+      c.width = 2;
+      const goodX   = _goodXCols(columns, colTypes);
+      const numCols = columns.filter(col => colTypes[col] === 'number');
+      if (!c.x_column || colTypes[c.x_column] === 'number') c.x_column = goodX[0] || null;
+      if (!c.color_column || colTypes[c.color_column] === 'number' || c.color_column === c.x_column)
+        c.color_column = goodX.find(col => col !== c.x_column) || null;
+      if (c.aggregation === 'count') c.y_column = null;
+      else if (c.y_column && colTypes[c.y_column] !== 'number') c.y_column = numCols[0] || null;
+    }
   });
 
   // Enrich with internal _column/_aggregation fields the browser renderer expects
@@ -3411,6 +3579,10 @@ async function buildDashboardWithOllama(csvData, columns, colTypes, prompt, file
   _injectIcicleIfRequested(charts, prompt, columns, colTypes);
   // Histogram injection
   _injectHistogramIfRequested(charts, prompt, columns, colTypes);
+  // Box and whisker plot injection
+  _injectBoxIfRequested(charts, prompt, columns, colTypes);
+  // Marimekko / mekko / mosaic chart injection
+  _injectMarimekkoIfRequested(charts, prompt, columns, colTypes);
   // Gauge / KPI indicator injection
   _injectGaugeIfRequested(charts, prompt, columns, colTypes);
   // Multi-row card → table injection
@@ -3816,6 +3988,10 @@ async function processOllamaContent(ollamaContent, csvData, columns, colTypes, p
   _injectIcicleIfRequested(charts, prompt, columns, colTypes);
   // Histogram injection
   _injectHistogramIfRequested(charts, prompt, columns, colTypes);
+  // Box and whisker plot injection
+  _injectBoxIfRequested(charts, prompt, columns, colTypes);
+  // Marimekko / mekko / mosaic chart injection
+  _injectMarimekkoIfRequested(charts, prompt, columns, colTypes);
   // Gauge / KPI indicator injection
   _injectGaugeIfRequested(charts, prompt, columns, colTypes);
   // Multi-row card → table injection

@@ -131,6 +131,32 @@ function generateDashboardPrompt() {
 
   const finalCharts = charts.slice(0, 8);
 
+  /* ── Box and Whisker Plot ─────────────────────────── */
+  // Best numeric: prefer a price/salary/amount column; fall back to first useful numeric
+  const boxNum = numCols.find(c => matches(c, ['price','salary','wage','amount','revenue','cost','score','rating','value','spend']))
+              || numCols.find(c => !matches(c, ['id','no','num','serial','rank','index','row','sr','qty','count','quantity']))
+              || numCols[0];
+  // Best grouping: prefer a low-cardinality categorical (2–15 unique values)
+  const boxCat = catCols.find(c => { const u = uniqueCount(c); return u >= 2 && u <= 15; })
+              || catCols[0];
+  const boxLines = [];
+  if (boxNum && boxCat) {
+    boxLines.push(`– Box and Whisker Plot showing the distribution of ${boxNum} by ${boxCat}`);
+  } else if (boxNum) {
+    boxLines.push(`– Box and Whisker Plot showing the distribution of ${boxNum}`);
+  }
+
+  /* ── Marimekko Chart ──────────────────────────────── */
+  // Needs two different categorical columns and one numeric
+  const marimekkoLines = [];
+  if (catCols.length >= 2 && primaryNum) {
+    const mCat1 = catCols[0];
+    const mCat2 = catCols.find(c => c !== mCat1) || catCols[1];
+    marimekkoLines.push(`– Marimekko chart of ${primaryNum} by ${mCat1} and ${mCat2}`);
+  } else if (catCols.length === 1 && hiCatCols.length && primaryNum) {
+    marimekkoLines.push(`– Marimekko chart of ${primaryNum} by ${catCols[0]} and ${hiCatCols[0]}`);
+  }
+
   /* ── Filters (up to 3) ────────────────────────────── */
   const filterCols = [];
   if (dateCols.length) filterCols.push(dateCols[0]);
@@ -152,6 +178,13 @@ function generateDashboardPrompt() {
   if (filterCols.length) {
     lines.push('');
     lines.push(`– Filters for ${filterCols.join(', ')}`);
+  }
+  if (boxLines.length) {
+    lines.push('');
+    lines.push(...boxLines);
+  }
+  if (marimekkoLines.length) {
+    lines.push(...marimekkoLines);
   }
 
   document.getElementById('prompt-input').value = lines.join('\n');
