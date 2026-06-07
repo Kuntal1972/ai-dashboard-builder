@@ -210,7 +210,7 @@ function wireEvents() {
 
   /* ── Build / Refine ──────────────────────────────────── */
   document.getElementById('btn-build').addEventListener('click', buildDashboard);
-  document.getElementById('btn-refine').addEventListener('click', refineDashboard);
+  document.getElementById('btn-refine')?.addEventListener('click', refineDashboard);
   document.getElementById('btn-prompt-guide').addEventListener('click', () => openModal('modal-prompt-guide'));
   document.getElementById('btn-generate-prompt').addEventListener('click', generateDashboardPrompt);
 

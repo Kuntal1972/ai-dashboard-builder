@@ -208,14 +208,27 @@ function _hexToRgba(hex, alpha) {
 
 function buildSankeyTraces(spec, data, layout) {
   const srcCol = spec.x_column;
-  const tgtCol = spec.y_column;
-  const valCol = spec._value_column || spec.target_column;
+
+  // Value/weight column — check all possible field names Claude or the server might use
+  const valCol = spec._value_column || spec.value_column || spec.target_column
+              || null;
+
+  // Target column: spec.y_column is correct when it holds a categorical column.
+  // If y_column is numeric (Claude put the weight there instead of the categorical target),
+  // treat it as the value column and auto-pick the categorical target.
+  const colTypes = AppState.colTypes || {};
+  const rawTgt   = spec.y_column;
+  const yIsNumeric = rawTgt && colTypes[rawTgt] === 'number';
+  const tgtCol  = yIsNumeric ? null : rawTgt;
+  const effectiveVal = valCol || (yIsNumeric ? rawTgt : null);
 
   if (!srcCol) return buildBarLineAreaTraces({ ...spec, type: 'bar' }, data, layout);
 
-  // Auto-pick target column if missing
+  // Auto-pick target column: prefer a categorical column that is not the source
   const effectiveTgt = tgtCol
-    || Object.keys(data[0] || {}).find(k => k !== srcCol && typeof data[0][k] === 'string');
+    || Object.keys(data[0] || {}).find(k =>
+         k !== srcCol && k !== effectiveVal &&
+         (typeof data[0][k] === 'string' || colTypes[k] === 'string'));
   if (!effectiveTgt) return buildBarLineAreaTraces({ ...spec, type: 'bar' }, data, layout);
 
   // ── Aggregate flows in one pass ────────────────────────────────────────
@@ -226,7 +239,7 @@ function buildSankeyTraces(spec, data, layout) {
     const src = String(r[srcCol]       ?? '').trim();
     const tgt = String(r[effectiveTgt] ?? '').trim();
     if (!src || !tgt || src === tgt) return;
-    const addVal = (valCol && r[valCol] != null) ? (Number(r[valCol]) || 1) : 1;
+    const addVal = (effectiveVal && r[effectiveVal] != null) ? (Number(r[effectiveVal]) || 1) : 1;
     const key = `${src}|||${tgt}`;
     if (!linkMap[key]) linkMap[key] = { src, tgt, val: 0 };
     linkMap[key].val += addVal;
@@ -253,7 +266,7 @@ function buildSankeyTraces(spec, data, layout) {
   const nodeIdx = Object.fromEntries(nodeList.map((n,i) => [n,i]));
 
   // ── Currency-aware value formatter ────────────────────────────────────
-  const isCurrency = valCol && /price|revenue|sales|amount|cost|pay|salary|income|profit|budget|spend|earn|value/i.test(valCol);
+  const isCurrency = effectiveVal && /price|revenue|sales|amount|cost|pay|salary|income|profit|budget|spend|earn|value/i.test(effectiveVal);
   const fmtVal = v => {
     if (v == null || isNaN(v)) return '';
     const abs = Math.abs(v);

@@ -44,7 +44,7 @@
         placeholder="Describe your dashboard… e.g. &quot;Create a sales dashboard with bar charts for revenue by region, monthly trend line, pie chart for product mix, and KPI cards for total revenue, orders, and average order value&quot;"></textarea>
       <div class="prompt-btn-col">
         <button id="btn-build" class="build-btn">⚡ Build Dashboard</button>
-        <button id="btn-refine" class="refine-btn" disabled title="Build a dashboard first, then describe refinements">🔄 Refine</button>
+        <button id="btn-readme" class="readme-btn" onclick="openReadMe()" title="Open the complete AI Dashboard Builder guide">📖 Read Me</button>
       </div>
     </div>
   </div>
@@ -1142,6 +1142,49 @@
     _lastQuery = '';
   };
 }());
+</script>
+<!-- ══ Read Me Modal ══ -->
+<div id="readme-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:12px;width:94vw;max-width:1440px;height:90vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.35);overflow:hidden">
+    <!-- Modal header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:linear-gradient(135deg,#1e1b4b,#4c1d95,#0e7490);flex-shrink:0">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:20px">📖</span>
+        <div>
+          <div style="font-size:15px;font-weight:800;color:#fff;letter-spacing:.3px">AI Dashboard Builder — Complete Guide</div>
+          <div style="font-size:10px;color:#c4b5fd;margin-top:1px">Process Flow · Chart Types · Buttons · Prompts · Export · Deployment</div>
+        </div>
+      </div>
+      <button onclick="closeReadMe()" title="Close" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;padding:5px 14px;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,.28)'" onmouseout="this.style.background='rgba(255,255,255,.15)'">✕ Close</button>
+    </div>
+    <!-- Iframe showing cheatsheet -->
+    <iframe id="readme-iframe" src="cheatsheet.html" style="flex:1;border:none;width:100%;background:#eef2f7" title="AI Dashboard Builder Cheat Sheet"></iframe>
+  </div>
+</div>
+
+<script>
+function openReadMe() {
+  const modal = document.getElementById('readme-modal');
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  // Reload iframe each open to ensure latest content
+  const iframe = document.getElementById('readme-iframe');
+  if (iframe.src !== location.origin + '/cheatsheet.html') {
+    iframe.src = 'cheatsheet.html';
+  }
+}
+function closeReadMe() {
+  document.getElementById('readme-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+// Close on backdrop click
+document.getElementById('readme-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeReadMe();
+});
+// Close on Escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && document.getElementById('readme-modal').style.display === 'flex') closeReadMe();
+});
 </script>
 </body>
 </html>

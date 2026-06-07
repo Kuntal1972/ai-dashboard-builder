@@ -3156,14 +3156,21 @@ function _injectSunburstIfRequested(charts, prompt, columns, colTypes) {
                || allCats.find(c => c !== parentCol) || null;
   let valCol    = nums[0] || null;
 
-  // Parse "sunburst of X by Y weighted by Z"
-  const ofM = /\bsunburst\s+(?:of\s+)?([\w][\w\s]{1,25}?)\s+(?:by|and)\s+([\w][\w\s]{1,25}?)(?:\s+weight|\s+by|\s*[,;.]|\s*$)/i.exec(prompt);
-  if (ofM) {
-    parentCol = _findBestCol(ofM[1].trim(), allCats, colTypes, false) || parentCol;
-    childCol  = _findBestCol(ofM[2].trim(), allCats, colTypes, false) || childCol;
+  // Parse "sunburst [chart] of X and Y by Z" or "sunburst of X and Y weighted by Z"
+  // Step 1: extract the two categorical columns from the "of X and Y" portion
+  const splitCol = name => name.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/[_\-]/g,' ').toLowerCase().split(/\s+/).filter(w=>w.length>2);
+  const andM = /\bof\s+([\w][\w\s]{1,30}?)\s+and\s+([\w][\w\s]{1,30}?)(?:\s+by\b|\s+weight|\s*[,;.]|\s*$)/i.exec(prompt);
+  if (andM) {
+    const h1 = andM[1].trim(); const h2 = andM[2].trim();
+    parentCol = _findBestCol(h1, allCats, colTypes, false) || allCats.find(c => splitCol(c).some(w => h1.toLowerCase().includes(w))) || parentCol;
+    childCol  = _findBestCol(h2, allCats, colTypes, false) || allCats.find(c => c !== parentCol && splitCol(c).some(w => h2.toLowerCase().includes(w))) || childCol;
   }
-  const wtM = /\bweighted?\s+by\s+([\w][\w\s]{1,25}?)(?:\s*[,;.]|\s*$)/i.exec(prompt);
-  if (wtM) valCol = _findBestCol(wtM[1].trim(), nums, colTypes, true) || valCol;
+  // Step 2: extract the value column from "by Z" or "weighted by Z" after the categories
+  // Use whichever comes last in the prompt (after the "and Y" part)
+  const wtM  = /\bweighted?\s+by\s+([\w][\w\s]{1,25}?)(?:\s*[,;.]|\s*$)/i.exec(prompt);
+  const byM  = /\band\s+[\w][\w\s]{1,30}?\s+by\s+([\w][\w\s]{1,25}?)(?:\s*[,;.]|\s*$)/i.exec(prompt);
+  const valHint = (wtM && wtM[1]) || (byM && byM[1]) || null;
+  if (valHint) valCol = _findBestCol(valHint.trim(), nums, colTypes, true) || valCol;
 
   if (!parentCol) return;
 

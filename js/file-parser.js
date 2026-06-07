@@ -235,15 +235,50 @@ function _analyzeColumnsForDS(data) {
   const cols   = Object.keys(data[0] || {});
   const types  = {};
   const sample = data.slice(0, AppState.config?.ui?.sampleRowsForAnalysis ?? 300);
+
+  // Column-name keywords that indicate a dimension/period even when values are integers
+  const periodNameRe = /\b(year|yr|fiscal|fy|quarter|qtr|month|mon|week|wk|semester|season|period|phase|cycle|term|grade|level|rank|rating|code|id\b|key\b|flag|bin|bucket|class|tier|band|group|cohort|batch|wave|series|num\b|no\b)\b/i;
+
   cols.forEach(c => {
     const vals = sample.map(r => r[c]).filter(v => v !== null && v !== undefined && v !== '');
-    if (vals.length && vals.every(v => typeof v === 'number' || (!isNaN(toNum(v)) && v !== ''))) {
-      types[c] = 'number';
-    } else if (vals.some(v => typeof v === 'string' && /^\d{2,4}[-\/]\d{1,2}/.test(v))) {
-      types[c] = 'date';
-    } else {
-      types[c] = 'string';
+    if (!vals.length) { types[c] = 'string'; return; }
+
+    // ── Date detection ──
+    if (vals.some(v => typeof v === 'string' && /^\d{2,4}[-\/]\d{1,2}/.test(v))) {
+      types[c] = 'date'; return;
     }
+
+    // ── Numeric check ──
+    const allNumeric = vals.every(v => typeof v === 'number' || (!isNaN(toNum(v)) && v !== ''));
+    if (!allNumeric) { types[c] = 'string'; return; }
+
+    // All values are numeric — decide: true measure vs categorical dimension
+    const nums      = vals.map(v => typeof v === 'number' ? v : toNum(v));
+    const uniqueSet = new Set(nums);
+    const uniqueCnt = uniqueSet.size;
+    const allInts   = nums.every(n => Number.isFinite(n) && n === Math.floor(n));
+
+    // 1. 4-digit year range (1900–2100) → always categorical
+    if (allInts && nums.every(n => n >= 1900 && n <= 2100)) {
+      types[c] = 'string'; return;
+    }
+
+    // 2. Column name looks like a period / code dimension → treat as categorical
+    if (periodNameRe.test(c)) {
+      types[c] = 'string'; return;
+    }
+
+    // 3. Small integers (1–366) with low cardinality (≤ 20 unique) → likely month/quarter/rank
+    if (allInts && nums.every(n => n >= 1 && n <= 366) && uniqueCnt <= 20) {
+      types[c] = 'string'; return;
+    }
+
+    // 4. Low cardinality overall (≤ 15 unique values out of sample) → treat as category
+    if (uniqueCnt <= 15 && uniqueCnt < vals.length * 0.1) {
+      types[c] = 'string'; return;
+    }
+
+    types[c] = 'number';
   });
   return { columns: cols, colTypes: types };
 }

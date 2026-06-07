@@ -58,11 +58,19 @@ Use EXACT column names from the COLUMN SUMMARY — copy character-for-character 
 - pie / donut / funnel: x_column = category, y_column = numeric
 - treemap (flat):        x_column = category, y_column = numeric
 - treemap (hierarchical, 2-level): x_column = parent/group column, color_column = child/sub-group column, y_column = numeric value, aggregation = "sum" (or "count")
+- sankey: x_column = SOURCE category column (left side of flow); y_column = TARGET category column (right side of flow — MUST be a different categorical column, NOT a numeric); color_column = null; aggregation = "sum"; width = 2. Store the numeric weight/value column in a field called "value_column" (NOT y_column).
+  CRITICAL: y_column must be the categorical TARGET, never the numeric weight. The numeric weight goes in "value_column".
+  Example "Sankey flow from FiscalYear to Dept weighted by BudgetUSD" → { "type":"sankey", "x_column":"FiscalYear", "y_column":"Dept", "value_column":"BudgetUSD", "aggregation":"sum", "width":2 }
+  Example "Sankey from Region to Category by Revenue" → { "type":"sankey", "x_column":"Region", "y_column":"Category", "value_column":"Revenue", "aggregation":"sum", "width":2 }
 - scatter: x_column = numeric, y_column = numeric, aggregation = "none"
 - histogram: x_column = numeric, y_column = null, aggregation = "none"
 - box (box and whisker plot): y_column = numeric column whose distribution to show; x_column = categorical column for grouped boxes (optional — null for a single overall box); aggregation = "none" (Plotly calculates min/Q1/median/Q3/max from raw rows automatically — NEVER aggregate first); width = 2 for grouped boxes
   Example "Box and whisker of Salary by Department" → { "type":"box", "x_column":"Department", "y_column":"Annual Salary", "aggregation":"none", "width":2 }
   Example "Distribution of Score overall" → { "type":"box", "x_column":null, "y_column":"Score", "aggregation":"none", "width":1 }
+- sunburst (radial hierarchy): x_column = INNER ring / parent category; color_column = OUTER ring / child category (the second dimension — MUST be set when two categories are mentioned); y_column = numeric value to aggregate (null for row count); aggregation = "sum" or "count"; width = 2
+  CRITICAL: when the prompt mentions TWO categorical columns (e.g. "Dept and FiscalYear"), put the FIRST as x_column (inner) and the SECOND as color_column (outer). Never leave color_column null when two categories are given.
+  Example "Sunburst of Dept and FiscalYear by BudgetUSD" → { "type":"sunburst", "x_column":"Dept", "color_column":"FiscalYear", "y_column":"BudgetUSD", "aggregation":"sum", "width":2 }
+  Example "Sunburst of Category and SubCategory weighted by Revenue" → { "type":"sunburst", "x_column":"Category", "color_column":"SubCategory", "y_column":"Revenue", "aggregation":"sum", "width":2 }
 - marimekko (Marimekko / mosaic chart): x_column = the main category column (drives column widths — each column width is proportional to that category's share of the grand total); color_column = the segment/split column (drives the stacked proportions inside each column); y_column = numeric column to aggregate (use null for row count); aggregation = "sum" or "count"; width = 2 (always full-width)
   Example "Marimekko of Revenue by Region and Category" → { "type":"marimekko", "x_column":"Region", "color_column":"Category", "y_column":"Revenue", "aggregation":"sum", "width":2 }
   Example "Marimekko of headcount by Country and Gender" → { "type":"marimekko", "x_column":"Country", "color_column":"Gender", "y_column":null, "aggregation":"count", "width":2 }

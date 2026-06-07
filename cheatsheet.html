@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>AI Dashboard Builder — Cheat Sheet</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#eef2f7;color:#0f172a;font-family:'Segoe UI',system-ui,sans-serif;font-size:10.5px;line-height:1.45;padding:16px;width:1400px}
+
+  /* ── Header ── */
+  .page-header{background:linear-gradient(135deg,#1e1b4b 0%,#4c1d95 50%,#0e7490 100%);border-radius:10px;padding:14px 20px;margin-bottom:12px;display:flex;align-items:center;gap:16px}
+  .page-header h1{font-size:20px;font-weight:900;color:#fff;letter-spacing:.4px;text-shadow:0 1px 3px rgba(0,0,0,.3)}
+  .page-header .sub{font-size:10px;color:#c4b5fd;margin-top:3px}
+  .badge-free{background:#10b981;color:#fff;border-radius:20px;padding:3px 10px;font-size:9.5px;font-weight:800;letter-spacing:.4px;white-space:nowrap;box-shadow:0 2px 6px rgba(16,185,129,.4)}
+
+  /* ── Grid ── */
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .card{background:#fff;border-radius:10px;padding:0;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.09)}
+  .card.wide2{grid-column:span 2}
+  .card.wide3{grid-column:span 3}
+  .card.wide4{grid-column:span 4}
+  .card-body{padding:10px}
+
+  /* ── Card headers — each section gets its own color ── */
+  .card-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;padding:7px 10px;display:flex;align-items:center;gap:6px;color:#fff}
+  .ct-purple{background:linear-gradient(90deg,#6d28d9,#7c3aed)}
+  .ct-blue{background:linear-gradient(90deg,#1d4ed8,#2563eb)}
+  .ct-green{background:linear-gradient(90deg,#065f46,#059669)}
+  .ct-orange{background:linear-gradient(90deg,#92400e,#d97706)}
+  .ct-teal{background:linear-gradient(90deg,#0e7490,#0891b2)}
+  .ct-rose{background:linear-gradient(90deg,#9f1239,#e11d48)}
+  .ct-indigo{background:linear-gradient(90deg,#312e81,#4338ca)}
+  .ct-emerald{background:linear-gradient(90deg,#064e3b,#10b981)}
+  .ct-violet{background:linear-gradient(90deg,#4c1d95,#8b5cf6)}
+
+  /* ── Mini section headers ── */
+  .mini-title{font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;margin:6px 0 3px;padding:2px 5px;border-radius:3px;display:inline-block}
+  .mt-purple{background:#ede9fe;color:#5b21b6}
+  .mt-blue{background:#dbeafe;color:#1e40af}
+  .mt-green{background:#d1fae5;color:#065f46}
+  .mt-orange{background:#fef3c7;color:#92400e}
+  .mt-teal{background:#cffafe;color:#0e7490}
+  .mt-rose{background:#ffe4e6;color:#9f1239}
+  .mt-gray{background:#f1f5f9;color:#334155}
+
+  /* ── Flow steps ── */
+  .flow{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:5px}
+  .step{border-radius:6px;padding:4px 7px;font-size:8.5px;font-weight:700;white-space:nowrap;border:1.5px solid;text-align:center}
+  .step-purple{background:#ede9fe;border-color:#7c3aed;color:#5b21b6}
+  .step-blue{background:#dbeafe;border-color:#2563eb;color:#1e40af}
+  .step-green{background:#d1fae5;border-color:#059669;color:#065f46}
+  .step-orange{background:#fef3c7;border-color:#d97706;color:#92400e}
+  .step-teal{background:#cffafe;border-color:#0891b2;color:#0e7490}
+  .arrow{color:#6d28d9;font-size:13px;font-weight:900}
+
+  /* ── Buttons list ── */
+  .btn-item{border-radius:5px;padding:4px 7px;font-size:9px;margin-bottom:3px;border-left:4px solid}
+  .btn-item b{font-size:9.5px;font-weight:800}
+  .btn-item p{color:#475569;margin-top:1px;font-size:8.5px}
+  .bi-purple{background:#faf5ff;border-color:#7c3aed}
+  .bi-purple b{color:#5b21b6}
+  .bi-blue{background:#eff6ff;border-color:#2563eb}
+  .bi-blue b{color:#1d4ed8}
+  .bi-green{background:#f0fdf4;border-color:#059669}
+  .bi-green b{color:#065f46}
+  .bi-orange{background:#fffbeb;border-color:#d97706}
+  .bi-orange b{color:#92400e}
+  .bi-teal{background:#f0fdfe;border-color:#0891b2}
+  .bi-teal b{color:#0e7490}
+  .bi-rose{background:#fff1f2;border-color:#e11d48}
+  .bi-rose b{color:#9f1239}
+
+  /* ── Chart tags ── */
+  .charts-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;margin-bottom:2px}
+  .ct-tag{border-radius:4px;padding:3px 4px;font-size:8.5px;text-align:center;font-weight:600;border:1px solid}
+  .ctt-purple{background:#ede9fe;color:#5b21b6;border-color:#c4b5fd}
+  .ctt-blue{background:#dbeafe;color:#1e40af;border-color:#93c5fd}
+  .ctt-green{background:#d1fae5;color:#065f46;border-color:#6ee7b7}
+  .ctt-teal{background:#cffafe;color:#0e7490;border-color:#67e8f9}
+  .ctt-orange{background:#fef3c7;color:#92400e;border-color:#fcd34d}
+  .ctt-rose{background:#ffe4e6;color:#9f1239;border-color:#fda4af}
+  .ctt-indigo{background:#e0e7ff;color:#3730a3;border-color:#a5b4fc}
+  .ctt-special{background:#fdf4ff;color:#7e22ce;border-color:#e879f9;font-weight:700}
+
+  /* ── Two-col ── */
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+  /* ── Lists ── */
+  ul{padding-left:13px}
+  li{margin-bottom:2px;font-size:9.5px;color:#1e293b;font-weight:500}
+  li b{color:#0f172a;font-weight:700}
+
+  /* ── Code / env blocks ── */
+  code{background:#f1f5f9;border:1px solid #cbd5e1;border-radius:3px;padding:1px 4px;font-size:8.5px;color:#7c3aed;font-family:'Courier New',monospace;font-weight:700}
+  .env-block{background:#f8fafc;border:1px solid #e2e8f0;border-radius:5px;padding:5px 7px;font-size:8.5px;color:#1e293b;margin-bottom:4px;font-weight:500}
+  .env-block b{color:#0f172a;font-weight:800}
+
+  /* ── Tags ── */
+  .tag{display:inline-block;border-radius:4px;padding:2px 6px;font-size:8.5px;font-weight:700;margin:2px;border:1.5px solid}
+  .tag-p{background:#ede9fe;color:#5b21b6;border-color:#7c3aed}
+  .tag-b{background:#dbeafe;color:#1e40af;border-color:#3b82f6}
+  .tag-g{background:#d1fae5;color:#065f46;border-color:#059669}
+  .tag-a{background:#fef3c7;color:#92400e;border-color:#d97706}
+
+  /* ── Number badges ── */
+  .nb{width:16px;height:16px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:900;color:#fff;flex-shrink:0}
+  .nb-p{background:#7c3aed}
+  .nb-b{background:#2563eb}
+  .nb-g{background:#059669}
+  .nb-o{background:#d97706}
+  .nb-t{background:#0891b2}
+  .nb-r{background:#e11d48}
+  .flow-step{display:flex;align-items:flex-start;gap:6px;margin-bottom:4px}
+  .flow-step-content{font-size:9.5px;color:#1e293b;font-weight:500}
+  .flow-step-content b{color:#0f172a;font-weight:800}
+
+  /* ── Tech stack ── */
+  .tech-stack{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px}
+  .tech{border-radius:5px;padding:4px 7px;font-size:8.5px;text-align:center;border:1.5px solid;font-weight:600}
+  .tech b{display:block;font-size:9.5px;font-weight:800;margin-bottom:1px}
+  .tech-p{background:#ede9fe;border-color:#7c3aed;color:#5b21b6}
+  .tech-p b{color:#4c1d95}
+  .tech-b{background:#dbeafe;border-color:#2563eb;color:#1e40af}
+  .tech-b b{color:#1e3a8a}
+  .tech-g{background:#d1fae5;border-color:#059669;color:#065f46}
+  .tech-g b{color:#064e3b}
+  .tech-o{background:#fef3c7;border-color:#d97706;color:#92400e}
+  .tech-o b{color:#78350f}
+
+  /* ── Sample charts ── */
+  .sample-chart{background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:6px;padding:7px;height:78px;display:flex;align-items:flex-end;gap:3px;overflow:hidden}
+  .bar{border-radius:2px 2px 0 0;min-width:16px;display:flex;align-items:flex-end;justify-content:center}
+  .bar span{font-size:6.5px;color:#fff;padding-bottom:1px;font-weight:700}
+  .chart-sample-label{font-size:8.5px;color:#334155;margin-top:4px;text-align:center;font-weight:700}
+  .line-chart{background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:6px;padding:7px;height:78px;position:relative;overflow:hidden}
+  .line-chart svg{width:100%;height:100%}
+  .pie-chart{background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:6px;padding:7px;height:78px;display:flex;align-items:center;justify-content:center}
+  .kpi-box{background:linear-gradient(135deg,#ede9fe,#dbeafe);border:1.5px solid #7c3aed;border-radius:6px;padding:6px 10px;text-align:center;height:78px;display:flex;flex-direction:column;justify-content:center}
+  .kpi-val{font-size:20px;font-weight:900;color:#4c1d95}
+  .kpi-lbl{font-size:8px;color:#5b21b6;font-weight:700}
+
+  /* ── Footer ── */
+  .footer{text-align:center;color:#64748b;font-size:8.5px;margin-top:10px;font-weight:500}
+
+  /* ── Warning box ── */
+  .warn-box{background:#fffbeb;border:1.5px solid #d97706;border-radius:5px;padding:5px 7px;font-size:8.5px;color:#92400e;font-weight:600}
+  .info-box{background:#eff6ff;border:1.5px solid #3b82f6;border-radius:5px;padding:5px 7px;font-size:8.5px;color:#1e40af;font-weight:600}
+  .tip-box{background:#f0fdf4;border:1.5px solid #059669;border-radius:5px;padding:5px 7px;font-size:8.5px;color:#065f46;font-weight:600}
+</style>
+</head>
+<body>
+
+<!-- ══ PAGE HEADER ══ -->
+<div class="page-header">
+  <div>
+    <h1>⚡ AI Dashboard Builder — Complete Cheat Sheet</h1>
+    <div class="sub">🤖 Claude API Mode &nbsp;|&nbsp; ⚡ Power BI + Ollama Mode &nbsp;|&nbsp; 📊 33 Chart Types &nbsp;|&nbsp; ✏ Prompts &nbsp;|&nbsp; 📥 Export &nbsp;|&nbsp; 🚀 GitHub + Render.com</div>
+  </div>
+  <div class="badge-free">✅ FREE &amp; OPEN SOURCE</div>
+</div>
+
+<div class="grid">
+
+  <!-- ═══ PROCESS FLOW ═══ -->
+  <div class="card wide4">
+    <div class="card-title ct-purple">⚡ END-TO-END PROCESS FLOW — Power BI + Ollama Mode &nbsp;<span style="background:#10b981;border-radius:10px;padding:1px 8px;font-size:8.5px;letter-spacing:.3px">✅ Free Mode — Recommended</span></div>
+    <div class="card-body">
+      <div class="flow">
+        <div class="step step-teal">🦙 1 Install Ollama<br><code>ollama.com</code></div><div class="arrow">▶</div>
+        <div class="step step-teal">📦 2 Pull Model<br><code>ollama pull llama3.2</code></div><div class="arrow">▶</div>
+        <div class="step step-teal">▶ 3 Start Ollama<br><code>ollama serve</code> <small>:11434</small></div><div class="arrow">▶</div>
+        <div class="step step-blue">📁 4 Clone Repo<br><code>git clone …</code></div><div class="arrow">▶</div>
+        <div class="step step-blue">📦 5 Install Deps<br><code>npm install</code></div><div class="arrow">▶</div>
+        <div class="step step-blue">⚙ 6 Configure<br><code>server/.env</code></div><div class="arrow">▶</div>
+        <div class="step step-purple">🖥 7 Start Server<br><code>npm start</code> <small>:3001</small></div><div class="arrow">▶</div>
+        <div class="step step-purple">🌐 8 Open Browser<br><code>localhost:3001</code></div><div class="arrow">▶</div>
+        <div class="step step-orange">⚡ 9 Select Mode<br><b>Power BI + Ollama</b></div><div class="arrow">▶</div>
+        <div class="step step-green">📂 10 Upload<br>CSV / XLSX</div><div class="arrow">▶</div>
+        <div class="step step-green">✏ 11 Write / Generate<br>Prompt</div><div class="arrow">▶</div>
+        <div class="step step-orange">⚡ 12 Build<br>Dashboard</div><div class="arrow">▶</div>
+        <div class="step step-purple">👁 13 Preview in<br>Browser</div><div class="arrow">▶</div>
+        <div class="step step-blue">📥 14 Download<br>.pbit / HTML / Excel</div>
+      </div>
+      <div class="info-box">🔄 <b>Server Pipeline:</b> Browser → <code>POST /api/build-powerbi</code> → Ollama LLM (llama3.2) → <code>processOllamaContent()</code> → Column Resolution → <code>_inject*()</code> Fixer Chain → <code>pbit-builder.js</code> → ZIP (.pbit) Response sent to Browser</div>
+    </div>
+  </div>
+
+  <!-- ═══ SETUP ═══ -->
+  <div class="card">
+    <div class="card-title ct-blue">⚙️ SETUP — TWO OPERATING MODES</div>
+    <div class="card-body">
+      <div class="mini-title mt-blue" style="width:100%;display:block">🤖 Claude API Mode (Browser-Direct, Paid)</div>
+      <div class="env-block"><b>No server needed.</b> Browser calls Claude API directly via key.<br>
+        🔑 Get key: <code>console.anthropic.com</code><br>
+        ➡ Enter key in <b>⚙ Settings</b> panel of app<br>
+        ➡ Click <b>🤖 Claude API Mode</b> button in header<br>
+        ✅ Supports all 33 chart types + full column resolution
+      </div>
+      <div class="mini-title mt-orange" style="width:100%;display:block">⚡ Power BI + Ollama Mode (Local LLM, Free)</div>
+      <div class="env-block">
+        📄 <b>server/.env configuration:</b><br>
+        <code>OLLAMA_URL=http://localhost:11434</code><br>
+        <code>OLLAMA_MODEL=llama3.2</code><br>
+        <code>PORT=3001</code><br>
+        <br>
+        ☁ <b>Optional — Groq Cloud (overrides Ollama):</b><br>
+        <code>GROQ_API_KEY=gsk_…</code><br>
+        <code>GROQ_MODEL=llama-3.1-8b-instant</code>
+      </div>
+      <div class="mini-title mt-green" style="width:100%;display:block">🦙 Recommended Models</div>
+      <div>
+        <span class="tag tag-p">🦙 llama3.2 (local)</span>
+        <span class="tag tag-b">⚡ llama3.2:1b (fast)</span>
+        <span class="tag tag-g">☁ llama-3.1-8b (Groq)</span>
+        <span class="tag tag-a">🤖 claude-sonnet-4 (API)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ BUTTONS ═══ -->
+  <div class="card wide2">
+    <div class="card-title ct-indigo">🖱️ BUTTONS &amp; THEIR ACTIONS</div>
+    <div class="card-body">
+      <div class="two-col">
+        <div>
+          <div class="mini-title mt-blue" style="width:100%;display:block">📌 Header Toolbar Buttons</div>
+          <div class="btn-item bi-blue"><b>⬆️ Upload File</b><p>Opens file picker → accepts CSV, XLSX, XLS. Auto-parses columns, detects types (number/string/date), shows data preview in Data tab</p></div>
+          <div class="btn-item bi-purple"><b>✨ Generate Prompt</b><p>Scans dataset columns → auto-builds full KPI + chart prompt filled into prompt text box instantly</p></div>
+          <div class="btn-item bi-teal"><b>📖 Prompt Guide</b><p>Opens overlay panel with example prompts, column tips, and chart-type guidance</p></div>
+          <div class="btn-item bi-green"><b>⬇️ Download HTML</b><p>Exports full interactive dashboard as self-contained HTML (Plotly.js embedded — opens in any browser)</p></div>
+          <div class="btn-item bi-green"><b>📥 Download Excel</b><p>Exports filtered dataset + chart aggregations as multi-sheet .xlsx workbook</p></div>
+          <div class="btn-item bi-orange"><b>🔍 Debug</b><p>Toggles column mapping inspector — shows exactly how each column was resolved for each chart</p></div>
+          <div class="btn-item bi-rose"><b>🗑️ Clear Dashboard</b><p>Removes all rendered charts and KPI cards — dataset stays loaded for re-use</p></div>
+          <div class="btn-item bi-purple"><b>⚙️ Settings</b><p>Claude API key, model selector, colour palette, histogram bins, export resolution</p></div>
+        </div>
+        <div>
+          <div class="mini-title mt-purple" style="width:100%;display:block">⚡ Prompt Area Buttons</div>
+          <div class="btn-item bi-orange"><b>⚡ Build Dashboard</b><p>Sends prompt + dataset to AI engine → renders full dashboard: KPI cards, charts, filters all at once</p></div>
+          <div class="btn-item bi-teal"><b>🔄 Refine</b><p>Sends follow-up prompt to modify existing dashboard — add/change/remove specific charts without full rebuild</p></div>
+          <div class="mini-title mt-green" style="width:100%;display:block">📊 Charts Tab Buttons</div>
+          <div class="btn-item bi-green"><b>⊞ Select All Charts</b><p>Appends dataset-aware smart prompt lines for ALL 33 chart types simultaneously into prompt box</p></div>
+          <div class="btn-item bi-teal"><b>⧉ Add Filters</b><p>Scans dataset for categorical (≤25 unique) + date columns → appends slicer/filter prompt line</p></div>
+          <div class="btn-item bi-purple"><b>📊 [Chart Type Card]</b><p>Each card click appends ONE smart prompt line e.g. <code>– Bar chart showing Revenue by Region</code></p></div>
+          <div class="mini-title mt-blue" style="width:100%;display:block">📁 Data Tab</div>
+          <div class="btn-item bi-blue"><b>⟷ Map &amp; Join Tables</b><p>Opens join dialog when 2+ files uploaded → select matching key columns → merges into one flat dataset</p></div>
+          <div class="btn-item bi-rose"><b>🔽 Filter Controls</b><p>Dropdown slicers, date range pickers — clicking any filter updates all dashboard charts live instantly</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ CHART TYPES ═══ -->
+  <div class="card">
+    <div class="card-title ct-teal">📊 33 SUPPORTED CHART TYPES</div>
+    <div class="card-body">
+      <div class="mini-title mt-purple" style="width:100%;display:block">📊 Bar &amp; Column Family (8)</div>
+      <div class="charts-grid">
+        <div class="ct-tag ctt-purple">📊 Bar Chart</div>
+        <div class="ct-tag ctt-purple">📊 Horiz. Bar</div>
+        <div class="ct-tag ctt-purple">📊 Clustered Col</div>
+        <div class="ct-tag ctt-purple">📊 Stacked Col</div>
+        <div class="ct-tag ctt-purple">📊 100% Stack Col</div>
+        <div class="ct-tag ctt-purple">📊 Clustered Bar</div>
+        <div class="ct-tag ctt-purple">📊 Stacked Bar</div>
+        <div class="ct-tag ctt-purple">📊 100% Stack Bar</div>
+      </div>
+      <div class="mini-title mt-blue" style="width:100%;display:block">📈 Trend &amp; Distribution (5)</div>
+      <div class="charts-grid">
+        <div class="ct-tag ctt-blue">📈 Line Chart</div>
+        <div class="ct-tag ctt-blue">📈 Area Chart</div>
+        <div class="ct-tag ctt-blue">📈 Stacked Area</div>
+        <div class="ct-tag ctt-blue">📊 Histogram</div>
+        <div class="ct-tag ctt-special">📦 Box &amp; Whisker</div>
+      </div>
+      <div class="mini-title mt-orange" style="width:100%;display:block">🔗 Combo &amp; Flow (5)</div>
+      <div class="charts-grid">
+        <div class="ct-tag ctt-orange">📊 Line+Col Combo</div>
+        <div class="ct-tag ctt-orange">📊 Line+Stack Combo</div>
+        <div class="ct-tag ctt-orange">📉 Waterfall</div>
+        <div class="ct-tag ctt-orange">🔽 Funnel</div>
+        <div class="ct-tag ctt-special">🎯 Bullet Chart</div>
+      </div>
+      <div class="mini-title mt-teal" style="width:100%;display:block">🧩 Relationship &amp; Part-of-Whole (8)</div>
+      <div class="charts-grid">
+        <div class="ct-tag ctt-teal">🔵 Scatter Plot</div>
+        <div class="ct-tag ctt-teal">🫧 Bubble Chart</div>
+        <div class="ct-tag ctt-teal">🥧 Pie Chart</div>
+        <div class="ct-tag ctt-teal">🍩 Donut Chart</div>
+        <div class="ct-tag ctt-teal">🗺 Treemap</div>
+        <div class="ct-tag ctt-special">▦ Marimekko</div>
+        <div class="ct-tag ctt-special">☀ Sunburst</div>
+        <div class="ct-tag ctt-special">🌲 Hierarchy Tree</div>
+      </div>
+      <div class="mini-title mt-green" style="width:100%;display:block">🌍 Geo &amp; KPI (5)</div>
+      <div class="charts-grid">
+        <div class="ct-tag ctt-green">🗺 Map Bubbles</div>
+        <div class="ct-tag ctt-green">🗺 Filled Map</div>
+        <div class="ct-tag ctt-green">⏲ Gauge/KPI</div>
+        <div class="ct-tag ctt-green">📋 Multi-Row Card</div>
+        <div class="ct-tag ctt-green">📈 KPI Trend</div>
+      </div>
+      <div class="mini-title mt-rose" style="width:100%;display:block">📋 Table &amp; Special (7)</div>
+      <div class="charts-grid">
+        <div class="ct-tag ctt-rose">📋 Data Table</div>
+        <div class="ct-tag ctt-rose">📋 Matrix Table</div>
+        <div class="ct-tag ctt-special">🌊 Sankey</div>
+        <div class="ct-tag ctt-special">📅 Gantt</div>
+        <div class="ct-tag ctt-special">🔥 Heatmap</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ MULTI-DATASET JOIN ═══ -->
+  <div class="card">
+    <div class="card-title ct-green">🔗 MULTI-DATASET JOIN</div>
+    <div class="card-body">
+      <div class="flow-step"><span class="nb nb-g">1</span><div class="flow-step-content"><b>📂 Upload first file</b> — CSV or XLSX appears in Data tab with column preview</div></div>
+      <div class="flow-step"><span class="nb nb-g">2</span><div class="flow-step-content"><b>📂 Upload second file</b> — <code>⟷ Map &amp; Join Tables</code> button appears automatically in header</div></div>
+      <div class="flow-step"><span class="nb nb-g">3</span><div class="flow-step-content"><b>🖱 Click Map &amp; Join</b> → dialog opens showing both tables with their columns listed</div></div>
+      <div class="flow-step"><span class="nb nb-g">4</span><div class="flow-step-content"><b>🔑 Select join key columns</b> — e.g. <code>OrderID</code> (Table A) ↔ <code>Order_ID</code> (Table B)</div></div>
+      <div class="flow-step"><span class="nb nb-g">5</span><div class="flow-step-content"><b>⚙ Choose join type</b> — Inner / Left / Outer merge operation</div></div>
+      <div class="flow-step"><span class="nb nb-g">6</span><div class="flow-step-content"><b>✅ Confirm</b> → merged flat dataset replaces active dataset; all columns from both tables available</div></div>
+      <div style="margin-top:5px">
+        <div class="tip-box">💡 <b>Tip:</b> Up to 3 files can be chained. Duplicate column names get auto-suffixed <code>_A</code> / <code>_B</code>. Use the Data tab to preview merged result before prompting.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PROMPTS ═══ -->
+  <div class="card">
+    <div class="card-title ct-orange">✏️ WRITING &amp; GENERATING PROMPTS</div>
+    <div class="card-body">
+      <div class="mini-title mt-orange" style="width:100%;display:block">📝 3 Ways to Create a Prompt</div>
+      <div class="flow-step"><span class="nb nb-o">A</span><div class="flow-step-content"><b>✍ Manual:</b> Type directly in the large prompt text area using plain English — describe charts, KPIs, and filters needed.</div></div>
+      <div class="flow-step"><span class="nb nb-o">B</span><div class="flow-step-content"><b>✨ Generate Prompt button:</b> Scans column names &amp; types → auto-writes a full dashboard prompt with KPIs, 8 chart suggestions, filter line, + Box &amp; Whisker and Marimekko at end.</div></div>
+      <div class="flow-step"><span class="nb nb-o">C</span><div class="flow-step-content"><b>📊 Chart Cards / ⊞ Select All:</b> Each chart card click appends one smart prompt line. Select All appends all 33 types at once.</div></div>
+      <div class="mini-title mt-blue" style="width:100%;display:block">💬 Sample Prompt Format</div>
+      <div class="env-block" style="font-size:8px">
+        <code>Create a Sales Dashboard with:<br>
+– KPI cards for total Revenue, avg Margin, count of Orders<br>
+– 📊 Bar chart for Revenue by Region<br>
+– 📈 Line chart for Revenue trend over OrderDate<br>
+– 🥧 Pie chart for Revenue share by Category<br>
+– 📦 Box and Whisker Plot showing UnitPrice by PaymentMethod<br>
+– ▦ Marimekko chart of Revenue by Category and OrderStatus<br>
+– 🔽 Filters for Region, Category, OrderDate</code>
+      </div>
+      <div class="mini-title mt-green" style="width:100%;display:block">💡 Prompt Tips</div>
+      <ul>
+        <li>🎯 Use <b>exact column names</b> for precise matching</li>
+        <li>📐 Specify aggregation: <code>total</code>, <code>average</code>, <code>count</code></li>
+        <li>🔝 Add <code>top 10</code>, <code>by date</code>, <code>split by</code>, <code>colored by</code></li>
+        <li>🔄 Use <b>Refine</b> button to modify without full rebuild</li>
+        <li>📌 Separate chart requests with <code>–</code> prefix per line</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ═══ DOWNLOAD FORMATS ═══ -->
+  <div class="card">
+    <div class="card-title ct-rose">📥 DOWNLOAD &amp; EXPORT FORMATS</div>
+    <div class="card-body">
+      <div class="btn-item bi-orange"><b>📊 .pbit — Power BI Template</b><p>Full Power BI Template file. Double-click opens in Power BI Desktop. Embedded data model, DAX measures, all visual layouts. <b>Power BI + Ollama mode only.</b></p></div>
+      <div class="btn-item bi-green"><b>🌐 Download HTML</b><p>Self-contained interactive HTML file with all charts (Plotly.js embedded). Opens in any browser, no server needed. Shareable via email or cloud drive.</p></div>
+      <div class="btn-item bi-blue"><b>📥 Download Excel (.xlsx)</b><p>Current filtered dataset exported as multi-sheet Excel workbook: raw data + per-chart aggregated summary tables.</p></div>
+      <div class="btn-item bi-purple"><b>🖼️ Chart PNG (per chart)</b><p>Each chart has a 📷 camera icon in its Plotly toolbar → exports that individual chart as high-resolution PNG (1400×700px).</p></div>
+      <div class="btn-item bi-teal"><b>📋 CSV (via table copy)</b><p>Right-click any Data Table chart on dashboard → select all / copy → paste directly into Excel or text editor.</p></div>
+    </div>
+  </div>
+
+  <!-- ═══ SAMPLE CHARTS ═══ -->
+  <div class="card wide2">
+    <div class="card-title ct-violet">🎨 SAMPLE CHART OUTPUTS</div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">
+
+        <div>
+          <div class="sample-chart">
+            <div class="bar" style="height:70%;background:#7c3aed"><span>2.4M</span></div>
+            <div class="bar" style="height:55%;background:#0891b2"><span>1.8M</span></div>
+            <div class="bar" style="height:85%;background:#059669"><span>2.9M</span></div>
+            <div class="bar" style="height:40%;background:#d97706"><span>1.3M</span></div>
+            <div class="bar" style="height:65%;background:#e11d48"><span>2.1M</span></div>
+          </div>
+          <div class="chart-sample-label">📊 Bar Chart</div>
+        </div>
+
+        <div>
+          <div class="line-chart">
+            <svg viewBox="0 0 100 60" preserveAspectRatio="none">
+              <defs><linearGradient id="lg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7c3aed" stop-opacity=".2"/><stop offset="1" stop-color="#7c3aed" stop-opacity="0"/></linearGradient></defs>
+              <polygon points="5,50 20,35 35,40 50,20 65,25 80,10 95,15 95,60 5,60" fill="url(#lg1)"/>
+              <polyline points="5,50 20,35 35,40 50,20 65,25 80,10 95,15" fill="none" stroke="#7c3aed" stroke-width="2.5"/>
+              <circle cx="50" cy="20" r="3" fill="#7c3aed"/>
+              <circle cx="80" cy="10" r="3" fill="#7c3aed"/>
+              <text x="50" y="15" font-size="7" fill="#4c1d95" text-anchor="middle" font-weight="bold">2.9M</text>
+            </svg>
+          </div>
+          <div class="chart-sample-label">📈 Line / Area</div>
+        </div>
+
+        <div>
+          <div class="pie-chart">
+            <svg viewBox="0 0 80 80" width="66" height="66">
+              <circle r="30" cx="40" cy="40" fill="transparent" stroke="#7c3aed" stroke-width="30" stroke-dasharray="70 124" stroke-dashoffset="0"/>
+              <circle r="30" cx="40" cy="40" fill="transparent" stroke="#0891b2" stroke-width="30" stroke-dasharray="40 154" stroke-dashoffset="-70"/>
+              <circle r="30" cx="40" cy="40" fill="transparent" stroke="#059669" stroke-width="30" stroke-dasharray="14 180" stroke-dashoffset="-110"/>
+              <circle cx="40" cy="40" r="18" fill="#fff"/>
+              <text x="40" y="38" font-size="7" fill="#4c1d95" text-anchor="middle" font-weight="bold">56%</text>
+              <text x="40" y="47" font-size="6" fill="#64748b" text-anchor="middle">Revenue</text>
+            </svg>
+          </div>
+          <div class="chart-sample-label">🍩 Donut / Pie</div>
+        </div>
+
+        <div>
+          <div class="kpi-box">
+            <div class="kpi-val">$4.2M</div>
+            <div class="kpi-lbl">💰 Total Revenue</div>
+            <div style="font-size:9px;color:#059669;margin-top:3px;font-weight:800">▲ 12.3% vs prior</div>
+          </div>
+          <div class="chart-sample-label">📋 KPI Card</div>
+        </div>
+
+        <div>
+          <div class="line-chart" style="display:flex;align-items:center;justify-content:space-around">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:1px">
+              <div style="width:1px;height:12px;background:#7c3aed"></div>
+              <div style="width:22px;height:28px;border:2px solid #7c3aed;background:rgba(124,58,237,.25);border-radius:2px;position:relative"><div style="position:absolute;top:50%;left:0;right:0;height:2px;background:#4c1d95"></div></div>
+              <div style="width:1px;height:8px;background:#7c3aed"></div>
+              <div style="font-size:7px;color:#5b21b6;font-weight:700">Cash</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:1px">
+              <div style="width:1px;height:7px;background:#0891b2"></div>
+              <div style="width:22px;height:22px;border:2px solid #0891b2;background:rgba(8,145,178,.25);border-radius:2px;position:relative"><div style="position:absolute;top:40%;left:0;right:0;height:2px;background:#0e7490"></div></div>
+              <div style="width:1px;height:14px;background:#0891b2"></div>
+              <div style="font-size:7px;color:#0e7490;font-weight:700">Card</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:1px">
+              <div style="width:1px;height:14px;background:#059669"></div>
+              <div style="width:22px;height:26px;border:2px solid #059669;background:rgba(5,150,105,.25);border-radius:2px;position:relative"><div style="position:absolute;top:55%;left:0;right:0;height:2px;background:#065f46"></div></div>
+              <div style="width:1px;height:6px;background:#059669"></div>
+              <div style="font-size:7px;color:#065f46;font-weight:700">UPI</div>
+            </div>
+          </div>
+          <div class="chart-sample-label">📦 Box &amp; Whisker</div>
+        </div>
+
+        <div>
+          <div class="line-chart">
+            <svg viewBox="0 0 100 60" preserveAspectRatio="none">
+              <circle cx="15" cy="45" r="3.5" fill="#7c3aed" opacity=".9"/><circle cx="28" cy="32" r="3.5" fill="#7c3aed" opacity=".9"/>
+              <circle cx="40" cy="38" r="3.5" fill="#0891b2" opacity=".9"/><circle cx="52" cy="20" r="3.5" fill="#0891b2" opacity=".9"/>
+              <circle cx="65" cy="28" r="3.5" fill="#059669" opacity=".9"/><circle cx="78" cy="12" r="3.5" fill="#059669" opacity=".9"/>
+              <circle cx="88" cy="18" r="3.5" fill="#d97706" opacity=".9"/>
+              <line x1="8" y1="58" x2="95" y2="5" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,3"/>
+              <text x="78" y="8" font-size="6.5" fill="#065f46" font-weight="bold">High</text>
+            </svg>
+          </div>
+          <div class="chart-sample-label">🔵 Scatter Plot</div>
+        </div>
+
+        <div>
+          <div class="sample-chart" style="display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,1fr);gap:2px;align-items:stretch">
+            <div style="background:rgba(124,58,237,.9);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:7px;color:#fff;font-weight:700">95</div>
+            <div style="background:rgba(124,58,237,.45);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:7px;color:#fff;font-weight:700">48</div>
+            <div style="background:rgba(124,58,237,.15);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:7px;color:#5b21b6;font-weight:700">18</div>
+            <div style="background:rgba(124,58,237,.7);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:7px;color:#fff;font-weight:700">72</div>
+            <div style="background:rgba(8,145,178,.4);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:7px;color:#fff;font-weight:700">38</div>
+            <div style="background:rgba(8,145,178,.9);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:7px;color:#fff;font-weight:700">88</div>
+            <div style="background:rgba(8,145,178,.6);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:7px;color:#fff;font-weight:700">55</div>
+            <div style="background:rgba(8,145,178,.2);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:7px;color:#0e7490;font-weight:700">12</div>
+            <div style="background:rgba(5,150,105,.7);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:7px;color:#fff;font-weight:700">65</div>
+            <div style="background:rgba(5,150,105,.3);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:7px;color:#065f46;font-weight:700">28</div>
+            <div style="background:rgba(5,150,105,.95);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:7px;color:#fff;font-weight:700">92</div>
+            <div style="background:rgba(5,150,105,.5);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:7px;color:#fff;font-weight:700">44</div>
+          </div>
+          <div class="chart-sample-label">🔥 Heatmap</div>
+        </div>
+
+        <div>
+          <div class="sample-chart" style="align-items:flex-end;gap:3px">
+            <div style="flex:1;background:#7c3aed;height:60%;border-radius:2px 2px 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:2px"><span style="font-size:6.5px;color:#fff;font-weight:700">100</span></div>
+            <div style="flex:1;background:#059669;height:25%;border-radius:2px 2px 0 0;margin-bottom:60%;display:flex;align-items:flex-start;justify-content:center;padding-top:1px"><span style="font-size:6.5px;color:#fff;font-weight:700">+25</span></div>
+            <div style="flex:1;background:#e11d48;height:15%;border-radius:2px 2px 0 0;margin-bottom:70%;display:flex;align-items:flex-start;justify-content:center;padding-top:1px"><span style="font-size:6.5px;color:#fff;font-weight:700">-15</span></div>
+            <div style="flex:1;background:#4c1d95;height:80%;border-radius:2px 2px 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:2px"><span style="font-size:6.5px;color:#fff;font-weight:700">110</span></div>
+          </div>
+          <div class="chart-sample-label">📉 Waterfall</div>
+        </div>
+
+        <div>
+          <div class="sample-chart" style="display:grid;grid-template-columns:3fr 2fr;grid-template-rows:3fr 2fr;gap:2px">
+            <div style="background:linear-gradient(135deg,#7c3aed,#6d28d9);border-radius:3px;grid-row:span 2;display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;font-weight:800;text-align:center">Electronics<br><span style="font-size:7px;font-weight:400;opacity:.9">45%</span></div>
+            <div style="background:linear-gradient(135deg,#0891b2,#0e7490);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;color:#fff;font-weight:700">Fashion 28%</div>
+            <div style="background:linear-gradient(135deg,#059669,#065f46);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;color:#fff;font-weight:700">Home 27%</div>
+          </div>
+          <div class="chart-sample-label">🗺 Treemap</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TECHNOLOGY ═══ -->
+  <div class="card">
+    <div class="card-title ct-emerald">🛠️ TECHNOLOGY STACK — Power BI + Ollama</div>
+    <div class="card-body">
+      <div class="mini-title mt-blue" style="width:100%;display:block">🖥 Frontend (Browser)</div>
+      <div class="tech-stack">
+        <div class="tech tech-p"><b>🌐 HTML5/CSS3</b>Vanilla + CSS Grid</div>
+        <div class="tech tech-b"><b>📊 Plotly.js</b>Chart rendering</div>
+        <div class="tech tech-g"><b>📊 SheetJS</b>Excel parse/export</div>
+        <div class="tech tech-o"><b>🔄 AppState</b>Global state store</div>
+      </div>
+      <div class="mini-title mt-green" style="width:100%;display:block">⚙ Backend (Node.js Server)</div>
+      <div class="tech-stack">
+        <div class="tech tech-g"><b>🚀 Express.js</b>REST API server</div>
+        <div class="tech tech-b"><b>🦙 Ollama API</b>Local LLM calls</div>
+        <div class="tech tech-o"><b>☁ Groq SDK</b>Cloud LLM option</div>
+        <div class="tech tech-p"><b>📦 JSZip</b>.pbit ZIP builder</div>
+      </div>
+      <div class="mini-title mt-purple" style="width:100%;display:block">📁 Key Server Files</div>
+      <div class="env-block" style="font-size:8px">
+        📄 <code>server/index.js</code> — Express API routes &amp; middleware<br>
+        🧠 <code>server/ollama-agent.js</code> — LLM calls + column resolution + _inject* chain<br>
+        ☁ <code>server/groq-agent.js</code> — Groq cloud LLM alternative path<br>
+        📦 <code>server/pbit-builder.js</code> — Power BI Template ZIP generator<br>
+        🔍 <code>server/chart-rag.js</code> — TF-IDF/embedding chart type selector
+      </div>
+      <div class="mini-title mt-teal" style="width:100%;display:block">📁 Key Client Files</div>
+      <div class="env-block" style="font-size:8px">
+        🎨 <code>js/dashboard.js</code> — Render pipeline + client-side inject*<br>
+        📊 <code>js/chart-renderer.js</code> — Plotly trace builders (33 chart types)<br>
+        🤖 <code>js/claude-api.js</code> — Direct Claude API integration<br>
+        ✨ <code>js/prompt-generator.js</code> — Auto-prompt generation logic<br>
+        🔗 <code>js/data-joiner.js</code> — Multi-dataset merge engine
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ GITHUB + RENDER ═══ -->
+  <div class="card">
+    <div class="card-title ct-violet">🚀 GITHUB REPO &amp; RENDER.COM DEPLOYMENT</div>
+    <div class="card-body">
+      <div class="mini-title mt-gray" style="width:100%;display:block">📂 Repository Structure</div>
+      <div class="env-block" style="font-size:8px">
+        📁 <code>ai-dashboard-builder/</code><br>
+        &nbsp;├── 🌐 <code>index.html</code> &nbsp;&nbsp;&nbsp;<span style="color:#059669;font-weight:700">← Single page app entry point</span><br>
+        &nbsp;├── 📁 <code>js/</code> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#059669;font-weight:700">← All client-side JS modules</span><br>
+        &nbsp;├── 📁 <code>css/</code> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#059669;font-weight:700">← Stylesheets</span><br>
+        &nbsp;├── 📁 <code>server/</code><br>
+        &nbsp;│&nbsp;&nbsp; ├── 🚀 <code>index.js</code> &nbsp;&nbsp;<span style="color:#059669;font-weight:700">← Express server</span><br>
+        &nbsp;│&nbsp;&nbsp; ├── 📄 <code>.env.example</code><br>
+        &nbsp;│&nbsp;&nbsp; └── 🧠 <code>*.js</code> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#059669;font-weight:700">← Agent + builder files</span><br>
+        &nbsp;├── ⚙ <code>config/config.json</code><br>
+        &nbsp;└── 📦 <code>package.json</code>
+      </div>
+      <div class="mini-title mt-blue" style="width:100%;display:block">🚀 Deploy to Render.com (Free Tier)</div>
+      <div class="flow-step"><span class="nb nb-b">1</span><div class="flow-step-content">🔼 Push code: <code>git push origin main</code> to GitHub</div></div>
+      <div class="flow-step"><span class="nb nb-b">2</span><div class="flow-step-content">🌐 Login to <b>render.com</b> → New → <b>Web Service</b></div></div>
+      <div class="flow-step"><span class="nb nb-b">3</span><div class="flow-step-content">🔗 Connect GitHub repo → Select branch <code>main</code></div></div>
+      <div class="flow-step"><span class="nb nb-b">4</span><div class="flow-step-content">⚙ Build: <code>npm install</code> &nbsp;|&nbsp; Start: <code>node server/index.js</code></div></div>
+      <div class="flow-step"><span class="nb nb-b">5</span><div class="flow-step-content">🔑 Add Env Vars: <code>GROQ_API_KEY</code> (for cloud LLM)</div></div>
+      <div class="flow-step"><span class="nb nb-b">6</span><div class="flow-step-content">✅ Deploy → get live URL: <code>yourapp.onrender.com</code></div></div>
+      <div style="margin-top:5px"><div class="warn-box">⚠️ <b>Important:</b> Ollama cannot run on Render.com (no GPU/local). For cloud deployment use <b>Groq API key</b> as the LLM provider instead. Set <code>GROQ_API_KEY</code> as an environment variable in the Render dashboard.</div></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer" style="margin-top:10px">
+  ⚡ AI Dashboard Builder &nbsp;·&nbsp; 🦙 Power BI + Ollama Mode (Free) &nbsp;·&nbsp; 🤖 Claude API Mode (Paid) &nbsp;·&nbsp; Built with Node.js / Express · Plotly.js · SheetJS · Ollama / Groq / Claude API &nbsp;·&nbsp; 🚀 Deployed via Render.com &nbsp;·&nbsp; © 2025
+</div>
+
+</body>
+</html>

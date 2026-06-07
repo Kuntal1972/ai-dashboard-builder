@@ -697,10 +697,9 @@ function renderDashboard(spec) {
     const xFallback     = needsNumericX ? firstNum : firstStr;
 
     let fixedX    = c.x_column    ? fixCol(c.x_column,    xFallback) : c.x_column;
-    // Gantt/heatmap/sunburst y_column is a date or categorical, not numeric — use a string fallback
-    // to avoid forcing a numeric column that would break these chart types
+    // Gantt/heatmap y_column is categorical/date; sunburst/icicle y_column is numeric (value).
     const firstStrCol = AppState.columns.find(col => AppState.colTypes[col] !== 'number') || firstStr;
-    const yFallback = (c.type === 'gantt' || c.type === 'heatmap' || c.type === 'sunburst' || c.type === 'icicle') ? firstStrCol : firstNum;
+    const yFallback = (c.type === 'gantt' || c.type === 'heatmap') ? firstStrCol : firstNum;
     let fixedY    = c.y_column    ? fixCol(c.y_column,    yFallback)  : c.y_column;
     // For bubble/scatter: y must be numeric; x may be categorical (e.g. Country on x-axis).
     // Only force numeric x when BOTH axes resolved to non-numeric (completely wrong spec).
@@ -715,7 +714,33 @@ function renderDashboard(spec) {
       : null;
     const fixedY2   = c.y2_column      ? fixCol(c.y2_column,      y2Fallback) : c.y2_column;
     const fixedSize = c.size_column    ? fixCol(c.size_column,    null)        : c.size_column;
-    const fixedColor= c.color_column   ? fixCol(c.color_column,   null)        : null;
+    let   fixedColor= c.color_column   ? fixCol(c.color_column,   null)        : null;
+
+    // ── Sunburst / Icicle: recover color_column (child ring) from prompt when Claude omits it ──
+    // Pattern: "sunburst of X and Y [by/weighted by] Z"  →  x_column=X, color_column=Y, y_column=Z
+    if ((c.type === 'sunburst' || c.type === 'icicle') && !fixedColor) {
+      const promptL = (AppState.lastPrompt || '').toLowerCase();
+      // Try to find a second categorical column mentioned near the chart keyword in the prompt
+      const sbKeyIdx = promptL.search(/\bsunburst\b|\bicicle\b|\bhierarchy\b/);
+      const sbSlice  = sbKeyIdx >= 0 ? promptL.slice(sbKeyIdx, sbKeyIdx + 150) : promptL;
+      // Pattern: "of X and Y" where Y is the child dimension
+      const andMatch = sbSlice.match(/\bof\s+[\w\s]{1,30}?\band\s+([\w][\w\s]{1,30}?)(?:\s+by\b|\s+weighted|\s*$|[,;.])/i);
+      if (andMatch) {
+        const childHint = andMatch[1].trim().toLowerCase();
+        const catCols   = AppState.columns.filter(col => AppState.colTypes[col] !== 'number');
+        const matched   = catCols.find(col => col.toLowerCase() === childHint)
+                       || catCols.find(col => col.toLowerCase().replace(/[\s_]/g,'') === childHint.replace(/[\s_]/g,''))
+                       || catCols.find(col => col.toLowerCase().includes(childHint) || childHint.includes(col.toLowerCase()))
+                       || catCols.find(col => col !== fixedX && col.toLowerCase().split(/\s+/).some(w => childHint.includes(w)));
+        if (matched && matched !== fixedX) fixedColor = matched;
+      }
+      // Fallback: if still no child col but there are multiple categoricals, use the second one
+      if (!fixedColor) {
+        const catCols = AppState.columns.filter(col => AppState.colTypes[col] !== 'number' && col !== fixedX);
+        fixedColor = catCols[0] || null;
+      }
+    }
+
     // Gantt: fix end_column (date column) so casing mismatches don't silently drop end dates
     const fixedEnd  = c.end_column     ? fixCol(c.end_column,     null)        : c.end_column;
     // Bullet: fix target_column
@@ -1098,6 +1123,7 @@ async function buildDashboard() {
   const prompt = document.getElementById('prompt-input').value.trim();
   if (!prompt)           { toast('Describe your dashboard requirements first.', 'error'); return; }
   if (!AppState.rawData) { toast('Upload a data file first.', 'error'); return; }
+  AppState.lastPrompt = prompt;   // stored so _postProcessAdvancedCharts can use it
   const key = (localStorage.getItem('claude_api_key') || '').replace(/\s/g, '');
   if (!key) {
     showLoading('Generating dashboard…', 'Running local analysis (no API key configured)');
@@ -1109,7 +1135,6 @@ async function buildDashboard() {
       AppState.filters     = {};
       addLogEntry('assistant', `Auto-built: "${spec.title}" — ${spec.charts?.length||0} charts, ${spec.kpi_cards?.length||0} KPIs`);
       requestAnimationFrame(() => requestAnimationFrame(() => renderDashboard(spec)));
-      document.getElementById('btn-refine').disabled = false;
       document.getElementById('btn-download-pbix').disabled = false;
       document.getElementById('prompt-input').value = '';
       toast('Dashboard built! (Local mode — add a Claude API key in ⚙ Settings for full AI power)', 'warn');
@@ -1157,7 +1182,6 @@ ${prompt}`;
     AppState.filters     = {};
     addLogEntry('assistant', `Built: "${spec.title}" — ${spec.charts?.length || 0} charts, ${spec.kpi_cards?.length || 0} KPIs`);
     requestAnimationFrame(() => requestAnimationFrame(() => renderDashboard(spec)));
-    document.getElementById('btn-refine').disabled = false;
     document.getElementById('btn-download-pbix').disabled = false;
     document.getElementById('prompt-input').value = '';
     toast('Dashboard built! ✓', 'success');
@@ -1299,7 +1323,6 @@ async function _buildPowerBI() {
     setTimeout(() => URL.revokeObjectURL(dlUrl), 10000);
 
     addLogEntry('assistant', `Power BI dashboard built: "${spec.title}" — downloading ${result.fileName}`);
-    document.getElementById('btn-refine').disabled = false;
     document.getElementById('btn-download-pbix').disabled = false;
     document.getElementById('prompt-input').value = '';
     toast('Power BI template downloaded! Open in Power BI Desktop → data loads automatically → File › Save As to save as .pbix ✓', 'success');
@@ -1593,7 +1616,6 @@ function clearDashboard() {
   updateDatasetPill('');
 
   // Buttons
-  document.getElementById('btn-refine').disabled        = true;
   document.getElementById('btn-download-pbix').disabled = true;
   document.getElementById('btn-download-excel').disabled = true;
 
